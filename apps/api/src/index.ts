@@ -3,6 +3,7 @@ import { cors } from '@elysiajs/cors'
 import { staticPlugin } from '@elysiajs/static'
 import { auth } from './lib/auth'
 import { authMiddleware } from './middleware/auth'
+import { setupRoutes } from './routes/setup'
 
 const app = new Elysia()
   .use(
@@ -19,6 +20,7 @@ const app = new Elysia()
     })
   )
   .mount('/api/auth', auth.handler)
+  .use(setupRoutes)
   .use(authMiddleware)
   .get('/', () => ({ message: 'Rafin API is running' }))
   .get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))

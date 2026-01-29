@@ -39,6 +39,9 @@
       "cache": false,
       "persistent": true
     },
+    "db:reset": {
+      "cache": false
+    },
     "clean": {
       "cache": false
     }

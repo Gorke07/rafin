@@ -16,6 +16,7 @@
     "db:migrate": "turbo run db:migrate --filter=@rafin/db",
     "db:push": "turbo run db:push --filter=@rafin/db",
     "db:studio": "turbo run db:studio --filter=@rafin/db",
+    "db:reset": "turbo run db:reset --filter=@rafin/db",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "knip": "knip",

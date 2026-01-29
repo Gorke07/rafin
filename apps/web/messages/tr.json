@@ -59,5 +59,21 @@
     "dark": "Koyu",
     "light": "Açık",
     "system": "Sistem"
+  },
+  "setup": {
+    "welcome": "Ev kütüphanenize hoş geldiniz",
+    "welcomeDescription": "Kitaplarınızı takip edin, raflarınızı düzenleyin ve okuma ilerlemenizi izleyin. Başlamak için admin hesabınızı oluşturalım.",
+    "start": "Başla",
+    "accountTitle": "Admin Hesabı Oluştur",
+    "accountDescription": "Bu, kütüphanenize tam erişimi olan ilk hesap olacak.",
+    "summaryTitle": "Bilgileri Onayla",
+    "summaryDescription": "Hesabınızı oluşturmadan önce bilgilerinizi gözden geçirin.",
+    "back": "Geri",
+    "next": "İleri",
+    "complete": "Kurulumu Tamamla",
+    "creating": "Hesap oluşturuluyor...",
+    "nameMinLength": "İsim en az 2 karakter olmalı",
+    "invalidEmail": "Geçerli bir e-posta adresi girin",
+    "passwordMinLength": "Şifre en az 8 karakter olmalı"
   }
 }

@@ -59,5 +59,21 @@
     "dark": "Dark",
     "light": "Light",
     "system": "System"
+  },
+  "setup": {
+    "welcome": "Welcome to your home library",
+    "welcomeDescription": "Track your books, organize your shelves, and monitor your reading progress. Let's set up your admin account to get started.",
+    "start": "Get Started",
+    "accountTitle": "Create Admin Account",
+    "accountDescription": "This will be the first account with full access to your library.",
+    "summaryTitle": "Confirm Details",
+    "summaryDescription": "Please review your information before creating your account.",
+    "back": "Back",
+    "next": "Next",
+    "complete": "Complete Setup",
+    "creating": "Creating account...",
+    "nameMinLength": "Name must be at least 2 characters",
+    "invalidEmail": "Please enter a valid email address",
+    "passwordMinLength": "Password must be at least 8 characters"
   }
 }
