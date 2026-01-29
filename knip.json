@@ -1,0 +1,31 @@
+{
+  "workspaces": {
+    "apps/api": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "apps/web": {
+      "entry": ["app/**/*.tsx", "app/**/*.ts", "middleware.ts"],
+      "project": ["**/*.ts", "**/*.tsx"]
+    },
+    "packages/db": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/shared": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/ui": {
+      "entry": ["src/index.ts", "src/index.tsx"],
+      "project": ["src/**/*.ts", "src/**/*.tsx"]
+    }
+  },
+  "ignoreDependencies": [
+    "@types/*",
+    "tailwindcss",
+    "postcss",
+    "autoprefixer"
+  ],
+  "ignoreWorkspaces": []
+}
