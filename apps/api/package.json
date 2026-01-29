@@ -1,0 +1,23 @@
+{
+  "name": "@rafin/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "start": "bun run dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.1.0",
+    "@elysiajs/static": "^1.1.0",
+    "@rafin/db": "workspace:*",
+    "@rafin/shared": "workspace:*",
+    "better-auth": "^1.2.0",
+    "elysia": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0"
+  }
+}
