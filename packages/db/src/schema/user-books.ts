@@ -1,6 +1,5 @@
 import { pgTable, serial, text, integer, boolean, timestamp, unique } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
-import { users } from './auth'
 import { books } from './books'
 
 export const readingStatus = ['tbr', 'reading', 'completed', 'dnf'] as const
@@ -9,9 +8,7 @@ export const userBooks = pgTable(
   'user_books',
   {
     id: serial('id').primaryKey(),
-    userId: text('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+    userId: text('user_id').notNull(),
     bookId: integer('book_id')
       .notNull()
       .references(() => books.id, { onDelete: 'cascade' }),
@@ -26,10 +23,6 @@ export const userBooks = pgTable(
 )
 
 export const userBooksRelations = relations(userBooks, ({ one }) => ({
-  user: one(users, {
-    fields: [userBooks.userId],
-    references: [users.id],
-  }),
   book: one(books, {
     fields: [userBooks.bookId],
     references: [books.id],
