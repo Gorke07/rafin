@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { StepWelcome } from './StepWelcome'
 import { StepAccount } from './StepAccount'
 import { StepSummary } from './StepSummary'
@@ -16,6 +17,8 @@ export interface SetupData {
 
 export function SetupWizard() {
   const router = useRouter()
+  const ts = useTranslations('setup')
+  const tc = useTranslations('common')
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [data, setData] = useState<SetupData>({
     name: '',
@@ -59,7 +62,7 @@ export function SetupWizard() {
 
       if (!setupResponse.ok) {
         const errorData = await setupResponse.json()
-        setError(errorData.error || 'Failed to complete setup')
+        setError(errorData.error || ts('setupFailed'))
         return
       }
 
@@ -75,14 +78,14 @@ export function SetupWizard() {
       })
 
       if (!loginResponse.ok) {
-        setError('Account created but login failed. Please login manually.')
+        setError(ts('loginAfterSetupFailed'))
         router.push('/login')
         return
       }
 
       router.push('/dashboard')
     } catch {
-      setError('Network error. Please try again.')
+      setError(tc('networkError'))
     } finally {
       setIsSubmitting(false)
     }

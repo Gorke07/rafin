@@ -4,6 +4,10 @@ import { db } from '@rafin/db/client'
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
+  trustedOrigins: [
+    'http://localhost:3000',
+    'http://10.0.0.46:3000',
+  ],
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),

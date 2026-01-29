@@ -2,6 +2,8 @@ import { relations } from 'drizzle-orm'
 import { integer, numeric, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
 import { locations } from './locations'
 
+export const bindingTypes = ['paperback', 'hardcover', 'ebook'] as const
+
 export const books = pgTable('books', {
   id: serial('id').primaryKey(),
   isbn: text('isbn'),
@@ -11,7 +13,11 @@ export const books = pgTable('books', {
   publishedYear: integer('published_year'),
   pageCount: integer('page_count'),
   coverPath: text('cover_path'),
+  coverUrl: text('cover_url'), // external cover URL from ISBN lookup
   translator: text('translator'),
+  description: text('description'),
+  language: text('language'),
+  bindingType: text('binding_type', { enum: bindingTypes }),
   purchaseDate: timestamp('purchase_date'),
   purchasePrice: numeric('purchase_price', { precision: 10, scale: 2 }),
   currency: text('currency').default('TRY'),
