@@ -1,0 +1,63 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Bir hata oluştu",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "search": "Ara",
+    "noResults": "Sonuç bulunamadı"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol",
+    "logout": "Çıkış Yap",
+    "email": "E-posta",
+    "password": "Şifre",
+    "name": "İsim",
+    "forgotPassword": "Şifremi unuttum",
+    "noAccount": "Hesabınız yok mu?",
+    "hasAccount": "Zaten hesabınız var mı?"
+  },
+  "nav": {
+    "home": "Ana Sayfa",
+    "books": "Kitaplar",
+    "locations": "Konumlar",
+    "reading": "Okumalarım",
+    "settings": "Ayarlar"
+  },
+  "books": {
+    "title": "Kitaplar",
+    "addBook": "Kitap Ekle",
+    "scanISBN": "ISBN Tara",
+    "manualEntry": "Manuel Giriş",
+    "noBooks": "Henüz kitap yok",
+    "totalBooks": "Toplam Kitap"
+  },
+  "locations": {
+    "title": "Konumlar",
+    "addLocation": "Konum Ekle",
+    "room": "Oda",
+    "furniture": "Mobilya",
+    "shelf": "Raf"
+  },
+  "reading": {
+    "title": "Okumalarım",
+    "tbr": "Okunacaklar",
+    "reading": "Şu An Okunan",
+    "completed": "Tamamlanan",
+    "dnf": "Yarım Bırakılan",
+    "progress": "İlerleme",
+    "currentPage": "Mevcut Sayfa"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "profile": "Profil",
+    "language": "Dil",
+    "theme": "Tema",
+    "dark": "Koyu",
+    "light": "Açık",
+    "system": "Sistem"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "noResults": "No results found"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "nav": {
+    "home": "Home",
+    "books": "Books",
+    "locations": "Locations",
+    "reading": "My Reading",
+    "settings": "Settings"
+  },
+  "books": {
+    "title": "Books",
+    "addBook": "Add Book",
+    "scanISBN": "Scan ISBN",
+    "manualEntry": "Manual Entry",
+    "noBooks": "No books yet",
+    "totalBooks": "Total Books"
+  },
+  "locations": {
+    "title": "Locations",
+    "addLocation": "Add Location",
+    "room": "Room",
+    "furniture": "Furniture",
+    "shelf": "Shelf"
+  },
+  "reading": {
+    "title": "My Reading",
+    "tbr": "To Be Read",
+    "reading": "Currently Reading",
+    "completed": "Completed",
+    "dnf": "Did Not Finish",
+    "progress": "Progress",
+    "currentPage": "Current Page"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "language": "Language",
+    "theme": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System"
+  }
+}
