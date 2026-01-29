@@ -1,5 +1,6 @@
-import { pgTable, serial, text, integer, boolean, timestamp, unique } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+import { boolean, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core'
+import { user } from './auth'
 import { books } from './books'
 
 export const readingStatus = ['tbr', 'reading', 'completed', 'dnf'] as const
@@ -8,7 +9,9 @@ export const userBooks = pgTable(
   'user_books',
   {
     id: serial('id').primaryKey(),
-    userId: text('user_id').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
     bookId: integer('book_id')
       .notNull()
       .references(() => books.id, { onDelete: 'cascade' }),
@@ -19,10 +22,14 @@ export const userBooks = pgTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
-  (table) => [unique('user_book_unique').on(table.userId, table.bookId)]
+  (table) => [unique('user_book_unique').on(table.userId, table.bookId)],
 )
 
 export const userBooksRelations = relations(userBooks, ({ one }) => ({
+  user: one(user, {
+    fields: [userBooks.userId],
+    references: [user.id],
+  }),
   book: one(books, {
     fields: [userBooks.bookId],
     references: [books.id],

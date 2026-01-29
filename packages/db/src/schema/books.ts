@@ -1,5 +1,5 @@
-import { pgTable, serial, text, integer, numeric, timestamp } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+import { integer, numeric, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
 import { locations } from './locations'
 
 export const books = pgTable('books', {

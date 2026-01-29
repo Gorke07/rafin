@@ -25,11 +25,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.0",
-    "postgres": "^3.4.5"
+    "drizzle-orm": "^0.45.1",
+    "postgres": "^3.4.8"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.30.0",
-    "dotenv": "^16.4.0"
+    "@types/node": "^22.0.0",
+    "drizzle-kit": "^0.31.8",
+    "dotenv": "^17.2.3"
   }
 }
