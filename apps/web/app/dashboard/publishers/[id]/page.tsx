@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import {
   ArrowLeft,
-  BookOpen,
   Building2,
   Edit2,
   ExternalLink,

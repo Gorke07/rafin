@@ -5,17 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
-import {
-  ArrowLeft,
-  BookOpen,
-  Edit2,
-  Image as ImageIcon,
-  Loader2,
-  Save,
-  Trash2,
-  User,
-  X,
-} from 'lucide-react'
+import { ArrowLeft, Edit2, Image as ImageIcon, Loader2, Save, Trash2, User, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -201,9 +191,7 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold">{author.name}</h1>
-                  {author.bio && (
-                    <p className="mt-1 text-muted-foreground">{author.bio}</p>
-                  )}
+                  {author.bio && <p className="mt-1 text-muted-foreground">{author.bio}</p>}
                 </div>
               </div>
               <div className="mt-3 flex gap-2">

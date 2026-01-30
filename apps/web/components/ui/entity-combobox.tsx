@@ -1,7 +1,7 @@
 'use client'
 
 import { Input } from '@/components/ui/input'
-import { X, Plus, GripVertical } from 'lucide-react'
+import { GripVertical, Plus, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 interface Entity {

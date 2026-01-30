@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { EntityCombobox } from '@/components/ui/entity-combobox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
@@ -19,7 +20,6 @@ import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { EntityCombobox } from '@/components/ui/entity-combobox'
 import { CoverUpload } from './CoverUpload'
 import { ISBNLookup } from './ISBNLookup'
 
@@ -304,8 +304,8 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
       if (cleanData.purchasePrice) cleanData.purchasePrice = String(cleanData.purchasePrice)
       // Signal cover removal to API
       if (coverRemoved) {
-        delete cleanData.coverPath
-        delete cleanData.coverUrl
+        cleanData.coverPath = undefined
+        cleanData.coverUrl = undefined
         cleanData.removeCover = true
       }
 
