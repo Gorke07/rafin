@@ -9,12 +9,18 @@ import {
   BookOpen,
   LayoutGrid,
   List,
-  Image as ImageIcon,
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PageHeader } from '@/components/dashboard/page-header'
+import { EmptyState } from '@/components/dashboard/empty-state'
+import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -44,7 +50,6 @@ function getCoverSrc(book: Book): string | null {
 
 export default function BooksPage() {
   const t = useTranslations('books')
-  const tc = useTranslations('common')
   const [searchQuery, setSearchQuery] = useState('')
   const [books, setBooks] = useState<Book[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -109,87 +114,87 @@ export default function BooksPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
-          {!isLoading && books.length > 0 && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t('bookCount', { count: books.length })}
-            </p>
-          )}
-        </div>
-        <Link
-          href="/dashboard/books/new"
-          className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          {t('addBook')}
-        </Link>
-      </div>
+      <PageHeader
+        title={t('title')}
+        description={!isLoading && books.length > 0 ? t('bookCount', { count: books.length }) : undefined}
+      >
+        <Button asChild>
+          <Link href="/dashboard/books/new">
+            <Plus className="h-4 w-4" />
+            {t('addBook')}
+          </Link>
+        </Button>
+      </PageHeader>
 
       {/* Toolbar: search + view toggle */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <form onSubmit={handleSearch} className="relative flex-1 max-w-md">
+        <form onSubmit={handleSearch} className="relative max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
+          <Input
             type="text"
             placeholder={t('search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-4 text-sm"
+            className="pl-9"
           />
         </form>
 
         <div className="flex items-center gap-1 rounded-md border bg-muted/40 p-1">
-          <button
-            type="button"
+          <Button
+            variant={view === 'card' ? 'default' : 'ghost'}
+            size="sm"
             onClick={() => setView('card')}
-            className={cn(
-              'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors',
-              view === 'card'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
           >
             <LayoutGrid className="h-4 w-4" />
             {t('cardView')}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant={view === 'table' ? 'default' : 'ghost'}
+            size="sm"
             onClick={() => setView('table')}
-            className={cn(
-              'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors',
-              view === 'table'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
           >
             <List className="h-4 w-4" />
             {t('tableView')}
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Content */}
       {isLoading ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary" />
-          <p className="mt-4 text-sm text-muted-foreground">{tc('loading')}</p>
-        </div>
+        view === 'card' ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <BookCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <div className="p-4 space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-10 w-7 rounded" />
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="hidden h-4 w-16 md:block" />
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
       ) : books.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <h3 className="mt-4 text-lg font-medium">{t('noBooks')}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">{t('startWithFirstBook')}</p>
-          <Link
-            href="/dashboard/books/new"
-            className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4" />
-            {t('addBook')}
-          </Link>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title={t('noBooks')}
+          description={t('startWithFirstBook')}
+          action={
+            <Button asChild>
+              <Link href="/dashboard/books/new">
+                <Plus className="h-4 w-4" />
+                {t('addBook')}
+              </Link>
+            </Button>
+          }
+        />
       ) : view === 'card' ? (
         <CardView books={sorted} />
       ) : (
@@ -206,42 +211,20 @@ export default function BooksPage() {
 function CardView({ books }: { books: Book[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {books.map((book) => {
-        const cover = getCoverSrc(book)
-        return (
-          <Link
-            key={book.id}
-            href={`/dashboard/books/${book.id}`}
-            className="group overflow-hidden rounded-lg border bg-card transition-all hover:shadow-md hover:border-primary/40"
-          >
-            {/* Cover */}
-            <div className="aspect-[3/4] w-full overflow-hidden bg-muted">
-              {cover ? (
-                <img
-                  src={cover}
-                  alt={book.title}
-                  className="h-full w-full object-contain transition-transform group-hover:scale-105"
-                />
-              ) : (
-                <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground/40">
-                  <ImageIcon className="h-12 w-12" />
-                </div>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="p-3">
-              <h3 className="font-semibold leading-tight line-clamp-2">{book.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground truncate">{book.authorNames}</p>
-              <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                {book.publishedYear && <span>{book.publishedYear}</span>}
-                {book.publishedYear && book.pageCount && <span className="text-border">·</span>}
-                {book.pageCount && <span>{book.pageCount} s.</span>}
-              </div>
-            </div>
-          </Link>
-        )
-      })}
+      {books.map((book) => (
+        <BookCard
+          key={book.id}
+          book={{
+            id: book.id,
+            title: book.title,
+            authorNames: book.authorNames,
+            coverPath: book.coverPath,
+            coverUrl: book.coverUrl,
+            publishedYear: book.publishedYear,
+            pageCount: book.pageCount,
+          }}
+        />
+      ))}
     </div>
   )
 }
@@ -285,7 +268,7 @@ function TableView({
     'px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors'
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-card">
+    <Card className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/40">
@@ -329,7 +312,6 @@ function TableView({
               const cover = getCoverSrc(book)
               return (
                 <tr key={book.id} className="transition-colors hover:bg-muted/30">
-                  {/* Thumbnail */}
                   <td className="px-4 py-2">
                     <Link href={`/dashboard/books/${book.id}`}>
                       <div className="h-10 w-7 overflow-hidden rounded bg-muted">
@@ -343,43 +325,32 @@ function TableView({
                       </div>
                     </Link>
                   </td>
-
-                  {/* Title */}
                   <td className="px-4 py-2">
                     <Link
                       href={`/dashboard/books/${book.id}`}
-                      className="font-medium hover:text-primary transition-colors line-clamp-1"
+                      className="line-clamp-1 font-medium transition-colors hover:text-primary"
                     >
                       {book.title}
                     </Link>
                   </td>
-
-                  {/* Author */}
                   <td className="px-4 py-2 text-muted-foreground">
                     <span className="line-clamp-1">{book.authorNames}</span>
                   </td>
-
-                  {/* Year */}
                   <td className="hidden px-4 py-2 text-muted-foreground md:table-cell">
                     {book.publishedYear || '—'}
                   </td>
-
-                  {/* Pages */}
                   <td className="hidden px-4 py-2 text-muted-foreground lg:table-cell">
                     {book.pageCount || '—'}
                   </td>
-
-                  {/* ISBN */}
                   <td className="hidden px-4 py-2 font-mono text-xs text-muted-foreground lg:table-cell">
                     {book.isbn || '—'}
                   </td>
-
                 </tr>
               )
             })}
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   )
 }
