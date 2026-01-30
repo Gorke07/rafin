@@ -1,24 +1,38 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
+import { use, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   Building2,
   Edit2,
   ExternalLink,
-  Image as ImageIcon,
   Loader2,
   Save,
   Trash2,
   X,
 } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { use, useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
+import { useToast } from '@/hooks/use-toast'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -101,7 +115,6 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
   }
 
   const handleDelete = async () => {
-    if (!confirm(t('deleteConfirm'))) return
     try {
       const response = await fetch(`${API_URL}/api/publishers/${id}`, {
         method: 'DELETE',
@@ -121,8 +134,22 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-md" />
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <BookCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -130,14 +157,13 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
   if (!publisher) {
     return (
       <div className="space-y-4">
-        <Link
-          href="/dashboard/publishers"
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          {t('title')}
-        </Link>
-        <p className="text-center text-muted-foreground py-8">{t('noPublishers')}</p>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/publishers">
+            <ArrowLeft className="h-4 w-4" />
+            {t('title')}
+          </Link>
+        </Button>
+        <p className="py-8 text-center text-muted-foreground">{t('noPublishers')}</p>
       </div>
     )
   }
@@ -146,42 +172,48 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/publishers" className="rounded-md p-2 hover:bg-accent">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/publishers">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </Button>
         <div className="flex-1">
           {isEditing ? (
-            <div className="space-y-3">
-              <div>
-                <Label>{t('name')}</Label>
-                <Input
-                  value={editForm.name}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label>{t('website')}</Label>
-                <Input
-                  value={editForm.website}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, website: e.target.value }))}
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="mr-2 h-4 w-4" />
-                  )}
-                  {tc('save')}
-                </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  <X className="mr-2 h-4 w-4" />
-                  {tc('cancel')}
-                </Button>
-              </div>
-            </div>
+            <Card>
+              <CardContent className="space-y-3">
+                <div>
+                  <Label>{t('name')}</Label>
+                  <Input
+                    value={editForm.name}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>{t('website')}</Label>
+                  <Input
+                    value={editForm.website}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, website: e.target.value }))
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 h-4 w-4" />
+                    )}
+                    {tc('save')}
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                    <X className="mr-2 h-4 w-4" />
+                    {tc('cancel')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <>
               <div className="flex items-center gap-3">
@@ -189,7 +221,7 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
                   <Building2 className="h-6 w-6" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">{publisher.name}</h1>
+                  <h1 className="text-2xl font-bold tracking-tight">{publisher.name}</h1>
                   {publisher.website && (
                     <a
                       href={publisher.website}
@@ -208,10 +240,28 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
                   <Edit2 className="mr-2 h-4 w-4" />
                   {tc('edit')}
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleDelete}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {tc('delete')}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {tc('delete')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('deleteConfirm')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('deleteConfirmDescription', { name: publisher.name })}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                        {tc('delete')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </>
           )}
@@ -219,53 +269,23 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Books */}
-      <div>
-        <h2 className="mb-4 text-lg font-semibold">
-          {t('books')} ({t('bookCount', { count: books.length })})
-        </h2>
-        {books.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('noPublishers')}</p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {books.map((book) => {
-              const coverSrc = book.coverPath
-                ? `${API_URL}${book.coverPath}`
-                : book.coverUrl || null
-              return (
-                <Link
-                  key={book.id}
-                  href={`/dashboard/books/${book.id}`}
-                  className="group overflow-hidden rounded-lg border bg-card transition-all hover:shadow-md hover:border-primary/40"
-                >
-                  <div className="aspect-[3/4] w-full overflow-hidden bg-muted">
-                    {coverSrc ? (
-                      <img
-                        src={coverSrc}
-                        alt={book.title}
-                        className="h-full w-full object-contain transition-transform group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <ImageIcon className="h-12 w-12 text-muted-foreground/40" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h3 className="font-semibold leading-tight line-clamp-2">{book.title}</h3>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                      {book.publishedYear && <span>{book.publishedYear}</span>}
-                      {book.publishedYear && book.pageCount && (
-                        <span className="text-border">&middot;</span>
-                      )}
-                      {book.pageCount && <span>{book.pageCount} s.</span>}
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
+      <Card>
+        <CardContent>
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold">{t('books')}</h2>
+            <Badge variant="secondary">{t('bookCount', { count: books.length })}</Badge>
           </div>
-        )}
-      </div>
+          {books.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('noPublishers')}</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {books.map((book) => (
+                <BookCard key={book.id} book={book} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

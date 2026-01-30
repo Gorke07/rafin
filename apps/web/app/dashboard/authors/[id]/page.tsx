@@ -1,15 +1,30 @@
 'use client'
 
+import { use, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, Edit2, Loader2, Save, Trash2, User, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Edit2, Image as ImageIcon, Loader2, Save, Trash2, User, X } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { use, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -95,7 +110,6 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
   }
 
   const handleDelete = async () => {
-    if (!confirm(t('deleteConfirm'))) return
     try {
       const response = await fetch(`${API_URL}/api/authors/${id}`, {
         method: 'DELETE',
@@ -115,8 +129,22 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-md" />
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <BookCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -124,14 +152,13 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
   if (!author) {
     return (
       <div className="space-y-4">
-        <Link
-          href="/dashboard/authors"
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          {t('title')}
-        </Link>
-        <p className="text-center text-muted-foreground py-8">{t('noAuthors')}</p>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/authors">
+            <ArrowLeft className="h-4 w-4" />
+            {t('title')}
+          </Link>
+        </Button>
+        <p className="py-8 text-center text-muted-foreground">{t('noAuthors')}</p>
       </div>
     )
   }
@@ -140,49 +167,55 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/authors" className="rounded-md p-2 hover:bg-accent">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/authors">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </Button>
         <div className="flex-1">
           {isEditing ? (
-            <div className="space-y-3">
-              <div>
-                <Label>{t('name')}</Label>
-                <Input
-                  value={editForm.name}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label>{t('bio')}</Label>
-                <Textarea
-                  value={editForm.bio}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, bio: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label>{t('photoUrl')}</Label>
-                <Input
-                  value={editForm.photoUrl}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, photoUrl: e.target.value }))}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="mr-2 h-4 w-4" />
-                  )}
-                  {tc('save')}
-                </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  <X className="mr-2 h-4 w-4" />
-                  {tc('cancel')}
-                </Button>
-              </div>
-            </div>
+            <Card>
+              <CardContent className="space-y-3">
+                <div>
+                  <Label>{t('name')}</Label>
+                  <Input
+                    value={editForm.name}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>{t('bio')}</Label>
+                  <Textarea
+                    value={editForm.bio}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, bio: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>{t('photoUrl')}</Label>
+                  <Input
+                    value={editForm.photoUrl}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, photoUrl: e.target.value }))
+                    }
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="mr-2 h-4 w-4" />
+                    )}
+                    {tc('save')}
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                    <X className="mr-2 h-4 w-4" />
+                    {tc('cancel')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <>
               <div className="flex items-center gap-3">
@@ -190,7 +223,7 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
                   <User className="h-6 w-6" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">{author.name}</h1>
+                  <h1 className="text-2xl font-bold tracking-tight">{author.name}</h1>
                   {author.bio && <p className="mt-1 text-muted-foreground">{author.bio}</p>}
                 </div>
               </div>
@@ -199,10 +232,28 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
                   <Edit2 className="mr-2 h-4 w-4" />
                   {tc('edit')}
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleDelete}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {tc('delete')}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {tc('delete')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('deleteConfirm')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('deleteConfirmDescription', { name: author.name })}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                        {tc('delete')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </>
           )}
@@ -210,53 +261,23 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Books */}
-      <div>
-        <h2 className="mb-4 text-lg font-semibold">
-          {t('books')} ({t('bookCount', { count: books.length })})
-        </h2>
-        {books.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('noAuthors')}</p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {books.map((book) => {
-              const coverSrc = book.coverPath
-                ? `${API_URL}${book.coverPath}`
-                : book.coverUrl || null
-              return (
-                <Link
-                  key={book.id}
-                  href={`/dashboard/books/${book.id}`}
-                  className="group overflow-hidden rounded-lg border bg-card transition-all hover:shadow-md hover:border-primary/40"
-                >
-                  <div className="aspect-[3/4] w-full overflow-hidden bg-muted">
-                    {coverSrc ? (
-                      <img
-                        src={coverSrc}
-                        alt={book.title}
-                        className="h-full w-full object-contain transition-transform group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <ImageIcon className="h-12 w-12 text-muted-foreground/40" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h3 className="font-semibold leading-tight line-clamp-2">{book.title}</h3>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                      {book.publishedYear && <span>{book.publishedYear}</span>}
-                      {book.publishedYear && book.pageCount && (
-                        <span className="text-border">&middot;</span>
-                      )}
-                      {book.pageCount && <span>{book.pageCount} s.</span>}
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
+      <Card>
+        <CardContent>
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold">{t('books')}</h2>
+            <Badge variant="secondary">{t('bookCount', { count: books.length })}</Badge>
           </div>
-        )}
-      </div>
+          {books.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('noAuthors')}</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {books.map((book) => (
+                <BookCard key={book.id} book={book} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
