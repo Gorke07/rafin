@@ -19,16 +19,22 @@ import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { EntityCombobox } from '@/components/ui/entity-combobox'
 import { CoverUpload } from './CoverUpload'
 import { ISBNLookup } from './ISBNLookup'
+
+interface Entity {
+  id: number
+  name: string
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 interface BookFormData {
   title: string
-  author: string
+  authorIds?: number[]
+  publisherIds?: number[]
   isbn?: string
-  publisher?: string
   publishedYear?: number
   pageCount?: number
   translator?: string
@@ -82,6 +88,8 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
   const { addToast } = useToast()
   const t = useTranslations('books')
   const tc = useTranslations('common')
+  const tAuth = useTranslations('authors')
+  const tPub = useTranslations('publishers')
 
   const bindingTypes = [
     { value: 'paperback', label: t('paperback') },
@@ -91,9 +99,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
 
   const [formData, setFormData] = useState<BookFormData>({
     title: '',
-    author: '',
     isbn: '',
-    publisher: '',
     translator: '',
     description: '',
     language: '',
@@ -101,12 +107,36 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     ...initialData,
   })
 
+  const [selectedAuthors, setSelectedAuthors] = useState<Entity[]>([])
+  const [selectedPublishers, setSelectedPublishers] = useState<Entity[]>([])
+
   const [locations, setLocations] = useState<Location[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [collections, setCollections] = useState<Collection[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [coverRemoved, setCoverRemoved] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // If editing, fetch book's current authors and publishers
+  useEffect(() => {
+    if (mode === 'edit' && initialData?.id) {
+      fetch(`${API_URL}/api/books/${initialData.id}`, { credentials: 'include' })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.book?.authors) {
+            const auths = data.book.authors.map((a: Entity) => ({ id: a.id, name: a.name }))
+            setSelectedAuthors(auths)
+            setFormData((prev) => ({ ...prev, authorIds: auths.map((a: Entity) => a.id) }))
+          }
+          if (data.book?.publishers) {
+            const pubs = data.book.publishers.map((p: Entity) => ({ id: p.id, name: p.name }))
+            setSelectedPublishers(pubs)
+            setFormData((prev) => ({ ...prev, publisherIds: pubs.map((p: Entity) => p.id) }))
+          }
+        })
+        .catch(console.error)
+    }
+  }, [mode, initialData?.id])
 
   useEffect(() => {
     // Fetch locations
@@ -150,13 +180,62 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     }
   }
 
-  const handleISBNFound = (book: BookFormData) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleISBNFound = async (book: any) => {
+    // Auto-create/find author
+    if (book.author && typeof book.author === 'string') {
+      const names = (book.author as string)
+        .split(/[,&]/)
+        .map((n) => n.trim())
+        .filter(Boolean)
+      const newAuthors: Entity[] = []
+      for (const name of names) {
+        try {
+          const res = await fetch(`${API_URL}/api/authors`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ name }),
+          })
+          if (res.ok) {
+            const data = await res.json()
+            newAuthors.push(data.author)
+          }
+        } catch {
+          /* skip */
+        }
+      }
+      if (newAuthors.length > 0) {
+        setSelectedAuthors(newAuthors)
+        setFormData((prev) => ({ ...prev, authorIds: newAuthors.map((a) => a.id) }))
+      }
+    }
+
+    // Auto-create/find publisher
+    if (book.publisher && typeof book.publisher === 'string') {
+      try {
+        const res = await fetch(`${API_URL}/api/publishers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ name: book.publisher }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setSelectedPublishers([data.publisher])
+          setFormData((prev) => ({ ...prev, publisherIds: [data.publisher.id] }))
+        }
+      } catch {
+        /* skip */
+      }
+    }
+
+    // Set remaining fields (exclude author/publisher text)
+    const { author, publisher, ...rest } = book
     setFormData((prev) => ({
       ...prev,
-      ...book,
-      // Don't overwrite fields that already have values
-      title: prev.title || book.title,
-      author: prev.author || book.author,
+      ...rest,
+      title: prev.title || (rest.title as string) || '',
     }))
     addToast(t('bookInfoFilled'), 'success')
   }
@@ -177,7 +256,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     if (!formData.title?.trim()) {
       newErrors.title = t('titleRequired')
     }
-    if (!formData.author?.trim()) {
+    if (selectedAuthors.length === 0) {
       newErrors.author = t('authorRequired')
     }
     if (
@@ -294,15 +373,21 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
               </div>
 
               <div>
-                <Label htmlFor="author" required>
-                  {t('author')}
-                </Label>
-                <Input
-                  id="author"
-                  name="author"
-                  value={formData.author}
-                  onChange={handleChange}
-                  error={errors.author}
+                <Label required>{t('author')}</Label>
+                <EntityCombobox
+                  selected={selectedAuthors}
+                  onSelectionChange={(entities) => {
+                    setSelectedAuthors(entities)
+                    setFormData((prev) => ({ ...prev, authorIds: entities.map((e) => e.id) }))
+                    if (errors.author) setErrors((prev) => ({ ...prev, author: '' }))
+                  }}
+                  searchEndpoint="/api/authors"
+                  createEndpoint="/api/authors"
+                  entityKey="author"
+                  placeholder={tAuth('selectAuthors')}
+                  createNewLabel={(name) => tAuth('createNew', { name })}
+                  noResultsLabel={tAuth('noResults')}
+                  orderable
                 />
                 {errors.author && <p className="mt-1 text-sm text-destructive">{errors.author}</p>}
               </div>
@@ -320,12 +405,19 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
                 </div>
 
                 <div>
-                  <Label htmlFor="publisher">{t('publisher')}</Label>
-                  <Input
-                    id="publisher"
-                    name="publisher"
-                    value={formData.publisher || ''}
-                    onChange={handleChange}
+                  <Label>{t('publisher')}</Label>
+                  <EntityCombobox
+                    selected={selectedPublishers}
+                    onSelectionChange={(entities) => {
+                      setSelectedPublishers(entities)
+                      setFormData((prev) => ({ ...prev, publisherIds: entities.map((e) => e.id) }))
+                    }}
+                    searchEndpoint="/api/publishers"
+                    createEndpoint="/api/publishers"
+                    entityKey="publisher"
+                    placeholder={tPub('selectPublishers')}
+                    createNewLabel={(name) => tPub('createNew', { name })}
+                    noResultsLabel={tPub('noResults')}
                   />
                 </div>
               </div>
