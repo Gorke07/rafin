@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia'
-import { db, books, locations, userBooks } from '@rafin/db'
+import { db, authors, books, locations, publishers, userBooks } from '@rafin/db'
 import { count, eq, isNull, sum } from 'drizzle-orm'
 
 export const statsRoutes = new Elysia({ prefix: '/api/stats' })
@@ -29,9 +29,19 @@ export const statsRoutes = new Elysia({ prefix: '/api/stats' })
       .where(eq(userBooks.status, 'completed'))
     const booksRead = completedResult[0]?.count ?? 0
 
+    // Total authors
+    const authorsResult = await db.select({ count: count() }).from(authors)
+    const totalAuthors = authorsResult[0]?.count ?? 0
+
+    // Total publishers
+    const publishersResult = await db.select({ count: count() }).from(publishers)
+    const totalPublishers = publishersResult[0]?.count ?? 0
+
     return {
       totalBooks,
       totalLocations,
+      totalAuthors,
+      totalPublishers,
       currentlyReading,
       booksRead,
     }
