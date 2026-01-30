@@ -52,7 +52,10 @@
     "booksRead": "Books Read",
     "recentlyAdded": "Recently Added",
     "noBooksYet": "No books yet. Add your first book!",
-    "noBooksInProgress": "No books in progress."
+    "noBooksInProgress": "No books in progress.",
+    "totalAuthors": "Total Authors",
+    "totalPublishers": "Total Publishers",
+    "viewAll": "View All"
   },
   "books": {
     "title": "Books",
@@ -258,7 +261,14 @@
     "progress": "Progress",
     "currentPage": "Current Page",
     "noBooks": "No books in your reading list",
-    "noBooksHint": "Add books to your library and start tracking your reading progress."
+    "noBooksHint": "Add books to your library and start tracking your reading progress.",
+    "startedAt": "Started {date}",
+    "finishedAt": "Finished {date}",
+    "pageOf": "{current} of {total} pages",
+    "noBooksInTab": "No books with this status",
+    "noBooksInTabHint": "Books you mark as \"{status}\" will appear here.",
+    "updateProgress": "Update Progress",
+    "markAs": "Mark as {status}"
   },
   "settings": {
     "title": "Settings",

@@ -52,7 +52,10 @@
     "booksRead": "Okunan Kitap",
     "recentlyAdded": "Son Eklenenler",
     "noBooksYet": "Henüz kitap yok. İlk kitabınızı ekleyin!",
-    "noBooksInProgress": "Devam eden kitap yok."
+    "noBooksInProgress": "Devam eden kitap yok.",
+    "totalAuthors": "Toplam Yazar",
+    "totalPublishers": "Toplam Yayınevi",
+    "viewAll": "Tümünü Gör"
   },
   "books": {
     "title": "Kitaplar",
@@ -258,7 +261,14 @@
     "progress": "İlerleme",
     "currentPage": "Mevcut Sayfa",
     "noBooks": "Okuma listenizde kitap yok",
-    "noBooksHint": "Kütüphanenize kitap ekleyin ve okuma ilerlemenizi takip etmeye başlayın."
+    "noBooksHint": "Kütüphanenize kitap ekleyin ve okuma ilerlemenizi takip etmeye başlayın.",
+    "startedAt": "Başlangıç: {date}",
+    "finishedAt": "Bitiş: {date}",
+    "pageOf": "{current} / {total} sayfa",
+    "noBooksInTab": "Bu durumda kitap yok",
+    "noBooksInTabHint": "\"{status}\" olarak işaretlediğiniz kitaplar burada görünür.",
+    "updateProgress": "İlerlemeyi Güncelle",
+    "markAs": "{status} olarak işaretle"
   },
   "settings": {
     "title": "Ayarlar",
