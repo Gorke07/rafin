@@ -66,11 +66,7 @@ export function QuickActions({ bookId, onCollectionClick }: QuickActionsProps) {
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:bg-destructive/10"
-          >
+          <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/10">
             <Trash2 className="mr-1 h-4 w-4" />
             {t('deleteBook')}
           </Button>
