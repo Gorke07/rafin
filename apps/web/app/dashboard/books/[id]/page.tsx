@@ -18,9 +18,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 interface Book {
   id: number
   title: string
-  author: string
+  authors?: Array<{ id: number; name: string }>
+  publishers?: Array<{ id: number; name: string }>
   isbn?: string | null
-  publisher?: string | null
   publishedYear?: number | null
   pageCount?: number | null
   translator?: string | null
@@ -130,7 +130,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         </Link>
         <div className="flex-1">
           <h1 className="text-3xl font-bold">{book.title}</h1>
-          <p className="text-lg text-muted-foreground">{book.author}</p>
+          <p className="text-lg text-muted-foreground">
+            {book.authors?.map((a) => a.name).join(', ') || '\u2014'}
+          </p>
         </div>
       </div>
 
@@ -236,9 +238,43 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               <div className="rounded-lg border bg-card p-6">
                 <h2 className="mb-4 text-lg font-semibold">{t('bookInfo')}</h2>
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
-                  <InfoItem label={t('author')} value={book.author} />
+                  {book.authors && book.authors.length > 0 && (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">{t('author')}</dt>
+                      <dd className="mt-0.5 flex flex-wrap gap-1">
+                        {book.authors.map((a, i) => (
+                          <span key={a.id}>
+                            <Link
+                              href={`/dashboard/authors/${a.id}`}
+                              className="font-medium hover:text-primary"
+                            >
+                              {a.name}
+                            </Link>
+                            {i < book.authors!.length - 1 && ', '}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
                   <InfoItem label={t('isbn')} value={book.isbn} />
-                  <InfoItem label={t('publisher')} value={book.publisher} />
+                  {book.publishers && book.publishers.length > 0 && (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">{t('publisher')}</dt>
+                      <dd className="mt-0.5 flex flex-wrap gap-1">
+                        {book.publishers.map((p, i) => (
+                          <span key={p.id}>
+                            <Link
+                              href={`/dashboard/publishers/${p.id}`}
+                              className="font-medium hover:text-primary"
+                            >
+                              {p.name}
+                            </Link>
+                            {i < book.publishers!.length - 1 && ', '}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
                   <InfoItem label={t('publishedYear')} value={book.publishedYear?.toString()} />
                   <InfoItem
                     label={t('pageCount')}

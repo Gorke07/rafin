@@ -19,15 +19,14 @@ import { cn } from '@/lib/utils'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 type ViewMode = 'card' | 'table'
-type SortField = 'title' | 'author' | 'publishedYear' | 'createdAt' | 'pageCount'
+type SortField = 'title' | 'authorNames' | 'publishedYear' | 'createdAt' | 'pageCount'
 type SortDir = 'asc' | 'desc'
 
 interface Book {
   id: number
   title: string
-  author: string
+  authorNames: string
   isbn: string | null
-  publisher: string | null
   publishedYear: number | null
   pageCount: number | null
   coverPath: string | null
@@ -233,7 +232,7 @@ function CardView({ books }: { books: Book[] }) {
             {/* Info */}
             <div className="p-3">
               <h3 className="font-semibold leading-tight line-clamp-2">{book.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground truncate">{book.author}</p>
+              <p className="mt-1 text-sm text-muted-foreground truncate">{book.authorNames}</p>
               <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                 {book.publishedYear && <span>{book.publishedYear}</span>}
                 {book.publishedYear && book.pageCount && <span className="text-border">·</span>}
@@ -298,10 +297,10 @@ function TableView({
                   <SortIcon field="title" activeField={sortField} dir={sortDir} />
                 </span>
               </th>
-              <th className={thClass} onClick={() => onSort('author')}>
+              <th className={thClass} onClick={() => onSort('authorNames')}>
                 <span className="inline-flex items-center gap-1">
                   {t('author')}
-                  <SortIcon field="author" activeField={sortField} dir={sortDir} />
+                  <SortIcon field="authorNames" activeField={sortField} dir={sortDir} />
                 </span>
               </th>
               <th
@@ -323,7 +322,6 @@ function TableView({
                 </span>
               </th>
               <th className={cn(thClass, 'hidden lg:table-cell')}>{t('isbn')}</th>
-              <th className={cn(thClass, 'hidden md:table-cell')}>{t('publisher')}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -358,7 +356,7 @@ function TableView({
 
                   {/* Author */}
                   <td className="px-4 py-2 text-muted-foreground">
-                    <span className="line-clamp-1">{book.author}</span>
+                    <span className="line-clamp-1">{book.authorNames}</span>
                   </td>
 
                   {/* Year */}
@@ -376,10 +374,6 @@ function TableView({
                     {book.isbn || '—'}
                   </td>
 
-                  {/* Publisher */}
-                  <td className="hidden px-4 py-2 text-muted-foreground md:table-cell">
-                    <span className="line-clamp-1">{book.publisher || '—'}</span>
-                  </td>
                 </tr>
               )
             })}
