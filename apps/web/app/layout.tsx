@@ -1,5 +1,5 @@
 import { SetupGuard } from '@/components/SetupGuard'
-import { ToastProvider } from '@/components/ui/toast'
+import { Toaster } from '@/components/ui/sonner'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
@@ -24,9 +24,8 @@ export default async function RootLayout({
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextIntlClientProvider messages={messages}>
-            <ToastProvider>
-              <SetupGuard>{children}</SetupGuard>
-            </ToastProvider>
+            <SetupGuard>{children}</SetupGuard>
+            <Toaster />
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>
