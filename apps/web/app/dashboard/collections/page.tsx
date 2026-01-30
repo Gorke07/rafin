@@ -3,10 +3,21 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { Plus, Library, Loader2, MoreVertical, Trash2, Edit, Sparkles } from 'lucide-react'
+import { Plus, Library, Loader2, MoreVertical, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { PageHeader } from '@/components/dashboard/page-header'
+import { EmptyState } from '@/components/dashboard/empty-state'
 import { useToast } from '@/hooks/use-toast'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -34,7 +45,6 @@ function CollectionsContent() {
   const [newDescription, setNewDescription] = useState('')
   const [newColor, setNewColor] = useState('#3b82f6')
   const [isCreating, setIsCreating] = useState(false)
-  const [editingId, setEditingId] = useState<number | null>(null)
 
   const fetchCollections = async () => {
     try {
@@ -98,139 +108,154 @@ function CollectionsContent() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{t('title')}</h1>
+      <PageHeader title={t('title')}>
         <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="h-4 w-4" />
           {t('addCollection')}
         </Button>
-      </div>
+      </PageHeader>
 
       {/* New Collection Form */}
       {showForm && (
-        <div className="rounded-lg border bg-card p-6 space-y-4">
-          <h2 className="text-lg font-semibold">{t('newCollection')}</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label htmlFor="col-name">{t('collectionName')}</Label>
-              <Input
-                id="col-name"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder={t('namePlaceholder')}
-              />
-            </div>
-            <div>
-              <Label htmlFor="col-color">{t('color')}</Label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  id="col-color"
-                  value={newColor}
-                  onChange={(e) => setNewColor(e.target.value)}
-                  className="h-10 w-14 cursor-pointer rounded-md border border-input bg-background"
-                />
+        <Card>
+          <CardContent className="space-y-4">
+            <h2 className="text-lg font-semibold">{t('newCollection')}</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="col-name">{t('collectionName')}</Label>
                 <Input
-                  value={newColor}
-                  onChange={(e) => setNewColor(e.target.value)}
-                  className="flex-1"
-                  placeholder="#3b82f6"
+                  id="col-name"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder={t('namePlaceholder')}
                 />
               </div>
+              <div>
+                <Label htmlFor="col-color">{t('color')}</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    id="col-color"
+                    value={newColor}
+                    onChange={(e) => setNewColor(e.target.value)}
+                    className="h-10 w-14 cursor-pointer rounded-md border border-input bg-background"
+                  />
+                  <Input
+                    value={newColor}
+                    onChange={(e) => setNewColor(e.target.value)}
+                    className="flex-1"
+                    placeholder="#3b82f6"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-          <div>
-            <Label htmlFor="col-desc">{t('descriptionOptional')}</Label>
-            <Input
-              id="col-desc"
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-              placeholder={t('descriptionPlaceholder')}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleCreate} disabled={isCreating || !newName.trim()}>
-              {isCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {tc('create')}
-            </Button>
-            <Button variant="ghost" onClick={() => setShowForm(false)}>
-              {tc('cancel')}
-            </Button>
-          </div>
-        </div>
+            <div>
+              <Label htmlFor="col-desc">{t('descriptionOptional')}</Label>
+              <Input
+                id="col-desc"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder={t('descriptionPlaceholder')}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleCreate} disabled={isCreating || !newName.trim()}>
+                {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
+                {tc('create')}
+              </Button>
+              <Button variant="ghost" onClick={() => setShowForm(false)}>
+                {tc('cancel')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Collection Grid */}
-      {collections.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Library className="mb-4 h-16 w-16 text-muted-foreground/30" />
-          <h2 className="text-lg font-semibold">{t('noCollections')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t('organizeBooks')}</p>
+      {isLoading ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="flex items-start gap-3">
+                <Skeleton className="mt-1 h-8 w-8 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-1/4" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+      ) : collections.length === 0 ? (
+        <EmptyState
+          icon={Library}
+          title={t('noCollections')}
+          description={t('organizeBooks')}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {collections.map((col) => (
-            <div
+            <Card
               key={col.id}
-              className="group relative rounded-lg border bg-card p-4 transition-shadow hover:shadow-md"
+              className="group relative transition-colors hover:bg-accent/50"
             >
-              <Link href={`/dashboard/collections/${col.id}`} className="block">
-                <div className="flex items-start gap-3">
-                  <div
-                    className="mt-1 h-8 w-8 shrink-0 rounded-lg"
-                    style={{ backgroundColor: col.color || '#6b7280' }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate">
-                      {col.name}
-                      {col.isSmart && (
-                        <Sparkles className="ml-1.5 inline h-4 w-4 text-yellow-500" />
+              <CardContent>
+                <Link href={`/dashboard/collections/${col.id}`} className="block">
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="mt-1 h-8 w-8 shrink-0 rounded-lg"
+                      style={{ backgroundColor: col.color || '#6b7280' }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate font-semibold">
+                        {col.name}
+                        {col.isSmart && (
+                          <Badge variant="secondary" className="ml-2 align-middle">
+                            <Sparkles className="mr-1 h-3 w-3" />
+                            {t('smartCollection')}
+                          </Badge>
+                        )}
+                      </h3>
+                      {col.description && (
+                        <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                          {col.description}
+                        </p>
                       )}
-                    </h3>
-                    {col.description && (
-                      <p className="mt-0.5 text-sm text-muted-foreground truncate">
-                        {col.description}
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {t('booksCount', { count: col.bookCount })}
                       </p>
-                    )}
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {t('booksCount', { count: col.bookCount })}
-                    </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-
-              {/* Actions */}
-              <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                <Link
-                  href={`/dashboard/collections/${col.id}`}
-                  className="rounded-md p-1.5 hover:bg-accent"
-                  title={tc('edit')}
-                >
-                  <Edit className="h-4 w-4" />
                 </Link>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    handleDelete(col.id)
-                  }}
-                  className="rounded-md p-1.5 text-destructive hover:bg-destructive/10"
-                  title={tc('delete')}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+
+                {/* Actions dropdown */}
+                <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/collections/${col.id}`}>
+                          {tc('edit')}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => handleDelete(col.id)}
+                      >
+                        {tc('delete')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
