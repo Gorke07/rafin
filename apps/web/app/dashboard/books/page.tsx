@@ -20,6 +20,7 @@ import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -315,17 +316,40 @@ function TableView({
               return (
                 <tr key={book.id} className="transition-colors hover:bg-muted/30">
                   <td className="px-4 py-2">
-                    <Link href={`/dashboard/books/${book.id}`}>
-                      <div className="h-10 w-7 overflow-hidden rounded bg-muted">
-                        {cover ? (
-                          <img src={cover} alt="" className="h-full w-full object-contain" />
-                        ) : (
+                    {cover ? (
+                      <HoverCard openDelay={200} closeDelay={0}>
+                        <HoverCardTrigger asChild>
+                          <Link href={`/dashboard/books/${book.id}`}>
+                            <div className="h-10 w-7 overflow-hidden rounded bg-muted">
+                              <img
+                                src={cover}
+                                alt=""
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                          </Link>
+                        </HoverCardTrigger>
+                        <HoverCardContent
+                          side="right"
+                          align="start"
+                          className="w-auto p-1"
+                        >
+                          <img
+                            src={cover}
+                            alt={book.title}
+                            className="h-72 w-auto rounded object-contain"
+                          />
+                        </HoverCardContent>
+                      </HoverCard>
+                    ) : (
+                      <Link href={`/dashboard/books/${book.id}`}>
+                        <div className="h-10 w-7 overflow-hidden rounded bg-muted">
                           <div className="flex h-full items-center justify-center">
                             <BookOpen className="h-3.5 w-3.5 text-muted-foreground/40" />
                           </div>
-                        )}
-                      </div>
-                    </Link>
+                        </div>
+                      </Link>
+                    )}
                   </td>
                   <td className="px-4 py-2">
                     <Link
