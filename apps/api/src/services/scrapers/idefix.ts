@@ -146,6 +146,7 @@ export const idefixScraper: BookScraper = {
       return {
         isbn: detail.barcode || isbn,
         title: detail.title || variant.originalName || variant.name || '',
+        originalTitle: variant.originalName || undefined,
         author: detail.authorName || variant.authorName || '',
         publisher: detail.brandName || undefined,
         publishedYear: descInfo.publishedYear,
@@ -245,6 +246,7 @@ export const idefixScraper: BookScraper = {
         results.push({
           isbn: '',
           title: variant.originalName || variant.name || '',
+          originalTitle: variant.originalName || undefined,
           author: variant.authorName || '',
           publisher: item.brandName || undefined,
           coverUrl,

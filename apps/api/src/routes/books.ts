@@ -152,6 +152,7 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         .insert(books)
         .values({
           title: body.title,
+          originalTitle: body.originalTitle || null,
           isbn: body.isbn || null,
           publishedYear: body.publishedYear || null,
           pageCount: body.pageCount || null,
@@ -218,6 +219,7 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
     {
       body: t.Object({
         title: t.String({ minLength: 1 }),
+        originalTitle: t.Optional(t.String()),
         authorIds: t.Array(t.Number()),
         publisherIds: t.Optional(t.Array(t.Number())),
         isbn: t.Optional(t.String()),
@@ -371,6 +373,7 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
       }),
       body: t.Object({
         title: t.Optional(t.String()),
+        originalTitle: t.Optional(t.String()),
         authorIds: t.Optional(t.Array(t.Number())),
         publisherIds: t.Optional(t.Array(t.Number())),
         isbn: t.Optional(t.String()),

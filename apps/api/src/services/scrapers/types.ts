@@ -8,6 +8,7 @@ export interface BookLookupResult {
   description?: string
   language?: string
   coverUrl?: string
+  originalTitle?: string
   translator?: string
   bindingType?: 'paperback' | 'hardcover' | 'ebook'
   sourceUrl?: string

@@ -10,6 +10,7 @@ export const createBookSchema = z.object({
     .optional()
     .or(z.literal('')),
   title: z.string().min(1, 'Title is required'),
+  originalTitle: z.string().optional(),
   authorIds: z.array(z.number().int().positive()).min(1, 'At least one author is required'),
   publisherIds: z.array(z.number().int().positive()).optional(),
   publishedYear: z.number().int().min(1000).max(2100).optional(),

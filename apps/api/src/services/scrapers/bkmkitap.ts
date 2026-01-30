@@ -26,6 +26,7 @@ function parseProductPage(html: string, isbn: string): BookLookupResult | null {
   let language: string | undefined
   let bindingType: 'paperback' | 'hardcover' | 'ebook' | undefined
   let translator: string | undefined
+  let originalTitle: string | undefined
 
   $('.product-info-list li').each((_, row) => {
     const label = $(row).find('.info-title').text().trim().toLowerCase()
@@ -48,6 +49,8 @@ function parseProductPage(html: string, isbn: string): BookLookupResult | null {
       }
     } else if (label.includes('çevirmen') || label.includes('tercüme')) {
       translator = value
+    } else if (label.includes('orijinal')) {
+      originalTitle = value
     }
   })
 
@@ -66,6 +69,7 @@ function parseProductPage(html: string, isbn: string): BookLookupResult | null {
     description,
     language,
     coverUrl,
+    originalTitle: originalTitle || undefined,
     translator,
     bindingType,
   }

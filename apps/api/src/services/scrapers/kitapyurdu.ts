@@ -77,17 +77,22 @@ function parseProductPage(html: string, isbn: string): BookLookupResult | null {
     $('div.pr_images img').first().attr('src') || $('img.js-jbox-book-cover').attr('src'),
   )
 
+  let detectedIsbn = ''
   let pageCount: number | undefined
   let publishedYear: number | undefined
   let language: string | undefined
   let bindingType: 'paperback' | 'hardcover' | 'ebook' | undefined
   let translator: string | undefined
+  let originalTitle: string | undefined
 
   $('div.pr_attributes div.attributes table tr, .attributes tr').each((_, row) => {
     const label = $(row).find('td').first().text().trim().toLowerCase()
     const value = $(row).find('td').last().text().trim()
 
-    if (label.includes('sayfa')) {
+    if (label.includes('isbn') || label.includes('barkod')) {
+      const clean = value.replace(/[-\s]/g, '')
+      if (/^\d{10,13}$/.test(clean)) detectedIsbn = clean
+    } else if (label.includes('sayfa')) {
       pageCount = Number.parseInt(value) || undefined
     } else if (
       label.includes('yayın tarihi') ||
@@ -106,6 +111,8 @@ function parseProductPage(html: string, isbn: string): BookLookupResult | null {
       }
     } else if (label.includes('çevirmen') || label.includes('cevirmen')) {
       translator = value
+    } else if (label.includes('orijinal')) {
+      originalTitle = value
     }
   })
 
@@ -116,7 +123,7 @@ function parseProductPage(html: string, isbn: string): BookLookupResult | null {
   if (!title) return null
 
   return {
-    isbn,
+    isbn: isbn || detectedIsbn,
     title,
     author,
     publisher: publisher || undefined,
@@ -125,6 +132,7 @@ function parseProductPage(html: string, isbn: string): BookLookupResult | null {
     description,
     language,
     coverUrl,
+    originalTitle: originalTitle || undefined,
     translator: translator || undefined,
     bindingType,
   }
@@ -133,31 +141,10 @@ function parseProductPage(html: string, isbn: string): BookLookupResult | null {
 export const kitapyurduScraper: BookScraper = {
   name: 'kitapyurdu',
 
-  async lookup(isbn: string): Promise<BookLookupResult | null> {
-    try {
-      const searchUrl = `https://www.kitapyurdu.com/index.php?route=product/search&filter_name=${isbn}`
-      const searchResponse = await fetch(searchUrl, { headers: HEADERS })
-
-      if (!searchResponse.ok) return null
-
-      const searchHtml = await searchResponse.text()
-      const $search = cheerio.load(searchHtml)
-
-      // Get first result link
-      const productLink =
-        $search('div.product-cr div.name.ellipsis a').first().attr('href') ||
-        $search('.product-cr .name a').first().attr('href')
-      if (!productLink) return null
-
-      // Fetch product page
-      const productResponse = await fetch(productLink, { headers: HEADERS })
-      if (!productResponse.ok) return null
-
-      return parseProductPage(await productResponse.text(), isbn)
-    } catch (error) {
-      console.error('Kitapyurdu lookup error:', error)
-      return null
-    }
+  async lookup(_isbn: string): Promise<BookLookupResult | null> {
+    // Kitapyurdu no longer supports ISBN search (returns 0 results server-side).
+    // Use lookupByUrl() or searchByTitle() instead.
+    return null
   },
 
   async lookupByUrl(url: string): Promise<BookLookupResult | null> {

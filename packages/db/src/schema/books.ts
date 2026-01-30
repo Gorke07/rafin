@@ -8,6 +8,7 @@ export const books = pgTable('books', {
   id: serial('id').primaryKey(),
   isbn: text('isbn'),
   title: text('title').notNull(),
+  originalTitle: text('original_title'),
   publishedYear: integer('published_year'),
   pageCount: integer('page_count'),
   coverPath: text('cover_path'),
