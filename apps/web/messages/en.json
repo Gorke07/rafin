@@ -17,7 +17,10 @@
     "loginFailed": "Login failed",
     "registrationFailed": "Registration failed",
     "name": "Name",
-    "pages": "pages"
+    "pages": "pages",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "menu": "Menu"
   },
   "auth": {
     "login": "Login",
@@ -81,6 +84,7 @@
     "publishedYear": "Published Year",
     "pageCount": "Page Count",
     "translator": "Translator",
+    "originalTitle": "Original Title",
     "language": "Language",
     "bindingType": "Binding Type",
     "location": "Location",
@@ -113,6 +117,9 @@
     "descriptionPlaceholder": "A brief description about the book...",
     "copyNotePlaceholder": "Special notes about this copy (signed, first edition, etc.)",
     "storePlaceholder": "Amazon, Barnes & Noble, etc.",
+    "selectRoom": "Select room...",
+    "selectFurniture": "Select furniture...",
+    "selectShelf": "Select shelf...",
     "noCategories": "No categories yet",
     "noCollections": "No collections yet",
     "titleColumn": "Title",
