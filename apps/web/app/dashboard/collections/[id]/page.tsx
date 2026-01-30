@@ -8,7 +8,7 @@ import { ArrowLeft, Book, Loader2, Trash2, Edit, X, Image as ImageIcon } from 'l
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ToastProvider, useToast } from '@/components/ui/toast'
+import { useToast } from '@/hooks/use-toast'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -129,7 +129,10 @@ function CollectionDetailContent({ id }: { id: string }) {
   if (!collection) {
     return (
       <div className="space-y-4">
-        <Link href="/dashboard/collections" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+        <Link
+          href="/dashboard/collections"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-5 w-5" />
           {t('backToCollections')}
         </Link>
@@ -142,10 +145,7 @@ function CollectionDetailContent({ id }: { id: string }) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link
-          href="/dashboard/collections"
-          className="rounded-md p-2 hover:bg-accent"
-        >
+        <Link href="/dashboard/collections" className="rounded-md p-2 hover:bg-accent">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex items-center gap-3 flex-1">
@@ -166,7 +166,9 @@ function CollectionDetailContent({ id }: { id: string }) {
                 onChange={(e) => setEditColor(e.target.value)}
                 className="h-10 w-10 cursor-pointer rounded-md border"
               />
-              <Button size="sm" onClick={handleUpdate}>{tc('save')}</Button>
+              <Button size="sm" onClick={handleUpdate}>
+                {tc('save')}
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>
                 <X className="h-4 w-4" />
               </Button>
@@ -187,9 +189,7 @@ function CollectionDetailContent({ id }: { id: string }) {
         </div>
       </div>
 
-      {collection.description && (
-        <p className="text-muted-foreground">{collection.description}</p>
-      )}
+      {collection.description && <p className="text-muted-foreground">{collection.description}</p>}
 
       <p className="text-sm text-muted-foreground">{t('booksCount', { count: books.length })}</p>
 
@@ -198,16 +198,12 @@ function CollectionDetailContent({ id }: { id: string }) {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Book className="mb-4 h-16 w-16 text-muted-foreground/30" />
           <h2 className="text-lg font-semibold">{t('noBooksInCollection')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('addBooksHint')}
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t('addBooksHint')}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {books.map(({ book }) => {
-            const coverSrc = book.coverPath
-              ? `${API_URL}${book.coverPath}`
-              : book.coverUrl || null
+            const coverSrc = book.coverPath ? `${API_URL}${book.coverPath}` : book.coverUrl || null
 
             return (
               <div
@@ -219,11 +215,7 @@ function CollectionDetailContent({ id }: { id: string }) {
                   className="h-24 w-16 shrink-0 overflow-hidden rounded-md bg-muted"
                 >
                   {coverSrc ? (
-                    <img
-                      src={coverSrc}
-                      alt={book.title}
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={coverSrc} alt={book.title} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full items-center justify-center">
                       <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
@@ -265,9 +257,5 @@ function CollectionDetailContent({ id }: { id: string }) {
 export default function CollectionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
 
-  return (
-    <ToastProvider>
-      <CollectionDetailContent id={id} />
-    </ToastProvider>
-  )
+  return <CollectionDetailContent id={id} />
 }

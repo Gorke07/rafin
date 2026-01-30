@@ -113,7 +113,20 @@
     "storePlaceholder": "Kitapyurdu, D&R, vb.",
     "noCategories": "Henüz kategori yok",
     "noCollections": "Henüz koleksiyon yok",
-    "titleColumn": "Başlık"
+    "titleColumn": "Başlık",
+    "richText": {
+      "bold": "Kalın",
+      "italic": "İtalik",
+      "underline": "Altı Çizili",
+      "heading2": "Başlık 2",
+      "heading3": "Başlık 3",
+      "bulletList": "Madde İşareti",
+      "orderedList": "Numaralı Liste",
+      "blockquote": "Alıntı",
+      "link": "Bağlantı",
+      "clearFormatting": "Biçimi Temizle",
+      "linkPrompt": "URL girin:"
+    }
   },
   "bookNotes": {
     "notesCount": "Notlar ({count})",
@@ -171,6 +184,7 @@
     "edit": "Düzenle",
     "addToCollection": "Koleksiyona Ekle",
     "confirmDelete": "Emin misiniz?",
+    "confirmDeleteDescription": "Bu kitap kalıcı olarak silinecek. Bu işlem geri alınamaz.",
     "yesDelete": "Evet, Sil",
     "deleteBook": "Sil"
   },

@@ -150,7 +150,7 @@ export default function BooksPage() {
               'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors',
               view === 'card'
                 ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <LayoutGrid className="h-4 w-4" />
@@ -163,7 +163,7 @@ export default function BooksPage() {
               'flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors',
               view === 'table'
                 ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <List className="h-4 w-4" />
@@ -182,9 +182,7 @@ export default function BooksPage() {
         <div className="rounded-lg border bg-card p-12 text-center">
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/40" />
           <h3 className="mt-4 text-lg font-medium">{t('noBooks')}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t('startWithFirstBook')}
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{t('startWithFirstBook')}</p>
           <Link
             href="/dashboard/books/new"
             className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
@@ -196,12 +194,7 @@ export default function BooksPage() {
       ) : view === 'card' ? (
         <CardView books={sorted} />
       ) : (
-        <TableView
-          books={sorted}
-          sortField={sortField}
-          sortDir={sortDir}
-          onSort={toggleSort}
-        />
+        <TableView books={sorted} sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
       )}
     </div>
   )
@@ -239,17 +232,11 @@ function CardView({ books }: { books: Book[] }) {
 
             {/* Info */}
             <div className="p-3">
-              <h3 className="font-semibold leading-tight line-clamp-2">
-                {book.title}
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground truncate">
-                {book.author}
-              </p>
+              <h3 className="font-semibold leading-tight line-clamp-2">{book.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground truncate">{book.author}</p>
               <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                 {book.publishedYear && <span>{book.publishedYear}</span>}
-                {book.publishedYear && book.pageCount && (
-                  <span className="text-border">·</span>
-                )}
+                {book.publishedYear && book.pageCount && <span className="text-border">·</span>}
                 {book.pageCount && <span>{book.pageCount} s.</span>}
               </div>
             </div>
@@ -343,20 +330,13 @@ function TableView({
             {books.map((book) => {
               const cover = getCoverSrc(book)
               return (
-                <tr
-                  key={book.id}
-                  className="transition-colors hover:bg-muted/30"
-                >
+                <tr key={book.id} className="transition-colors hover:bg-muted/30">
                   {/* Thumbnail */}
                   <td className="px-4 py-2">
                     <Link href={`/dashboard/books/${book.id}`}>
                       <div className="h-10 w-7 overflow-hidden rounded bg-muted">
                         {cover ? (
-                          <img
-                            src={cover}
-                            alt=""
-                            className="h-full w-full object-contain"
-                          />
+                          <img src={cover} alt="" className="h-full w-full object-contain" />
                         ) : (
                           <div className="flex h-full items-center justify-center">
                             <BookOpen className="h-3.5 w-3.5 text-muted-foreground/40" />
@@ -398,9 +378,7 @@ function TableView({
 
                   {/* Publisher */}
                   <td className="hidden px-4 py-2 text-muted-foreground md:table-cell">
-                    <span className="line-clamp-1">
-                      {book.publisher || '—'}
-                    </span>
+                    <span className="line-clamp-1">{book.publisher || '—'}</span>
                   </td>
                 </tr>
               )

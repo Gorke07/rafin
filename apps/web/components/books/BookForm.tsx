@@ -1,18 +1,26 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
-import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ISBNLookup } from './ISBNLookup'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/hooks/use-toast'
+import { plainTextToHtml } from '@/lib/html-utils'
+import { Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { CoverUpload } from './CoverUpload'
-import { useToast } from '@/components/ui/toast'
+import { ISBNLookup } from './ISBNLookup'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -76,7 +84,6 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
   const tc = useTranslations('common')
 
   const bindingTypes = [
-    { value: '', label: t('selectBinding') },
     { value: 'paperback', label: t('paperback') },
     { value: 'hardcover', label: t('hardcover') },
     { value: 'ebook', label: t('ebook') },
@@ -121,15 +128,23 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
       .catch(console.error)
   }, [])
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'number' ? (value ? Number(value) : undefined) : value,
     }))
     // Clear error when field changes
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }))
+    }
+  }
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'locationId' ? (value ? Number(value) : undefined) : value,
+    }))
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
     }
@@ -165,7 +180,10 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     if (!formData.author?.trim()) {
       newErrors.author = t('authorRequired')
     }
-    if (formData.publishedYear && (formData.publishedYear < 1000 || formData.publishedYear > 2100)) {
+    if (
+      formData.publishedYear &&
+      (formData.publishedYear < 1000 || formData.publishedYear > 2100)
+    ) {
       newErrors.publishedYear = t('invalidYear')
     }
     if (formData.pageCount && formData.pageCount < 1) {
@@ -187,9 +205,10 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     setIsLoading(true)
 
     try {
-      const url = mode === 'edit' && initialData?.id
-        ? `${API_URL}/api/books/${initialData.id}`
-        : `${API_URL}/api/books`
+      const url =
+        mode === 'edit' && initialData?.id
+          ? `${API_URL}/api/books/${initialData.id}`
+          : `${API_URL}/api/books`
 
       const method = mode === 'edit' ? 'PATCH' : 'POST'
 
@@ -224,10 +243,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
         return
       }
 
-      addToast(
-        mode === 'edit' ? t('bookUpdated') : t('bookAdded'),
-        'success'
-      )
+      addToast(mode === 'edit' ? t('bookUpdated') : t('bookAdded'), 'success')
       router.push('/dashboard/books')
     } catch {
       addToast(tc('error'), 'error')
@@ -238,10 +254,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <ISBNLookup
-        onBookFound={handleISBNFound}
-        onError={(msg) => addToast(msg, 'warning')}
-      />
+      <ISBNLookup onBookFound={handleISBNFound} onError={(msg) => addToast(msg, 'warning')} />
 
       <Tabs defaultValue="basic" className="w-full">
         <TabsList className="w-full grid grid-cols-4">
@@ -267,7 +280,9 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title" required>{t('titleColumn')}</Label>
+                <Label htmlFor="title" required>
+                  {t('titleColumn')}
+                </Label>
                 <Input
                   id="title"
                   name="title"
@@ -275,13 +290,13 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
                   onChange={handleChange}
                   error={errors.title}
                 />
-                {errors.title && (
-                  <p className="mt-1 text-sm text-destructive">{errors.title}</p>
-                )}
+                {errors.title && <p className="mt-1 text-sm text-destructive">{errors.title}</p>}
               </div>
 
               <div>
-                <Label htmlFor="author" required>{t('author')}</Label>
+                <Label htmlFor="author" required>
+                  {t('author')}
+                </Label>
                 <Input
                   id="author"
                   name="author"
@@ -289,9 +304,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
                   onChange={handleChange}
                   error={errors.author}
                 />
-                {errors.author && (
-                  <p className="mt-1 text-sm text-destructive">{errors.author}</p>
-                )}
+                {errors.author && <p className="mt-1 text-sm text-destructive">{errors.author}</p>}
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -362,13 +375,23 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
         <TabsContent value="details" className="space-y-4 pt-4">
           <div>
             <Label htmlFor="description">{t('description')}</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description || ''}
-              onChange={handleChange}
-              rows={4}
+            <RichTextEditor
+              content={plainTextToHtml(formData.description)}
+              onChange={(html) => setFormData((prev) => ({ ...prev, description: html }))}
               placeholder={t('descriptionPlaceholder')}
+              labels={{
+                bold: t('richText.bold'),
+                italic: t('richText.italic'),
+                underline: t('richText.underline'),
+                heading2: t('richText.heading2'),
+                heading3: t('richText.heading3'),
+                bulletList: t('richText.bulletList'),
+                orderedList: t('richText.orderedList'),
+                blockquote: t('richText.blockquote'),
+                link: t('richText.link'),
+                clearFormatting: t('richText.clearFormatting'),
+                linkPrompt: t('richText.linkPrompt'),
+              }}
             />
           </div>
 
@@ -384,18 +407,21 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="bindingType">{t('bindingType')}</Label>
+              <Label>{t('bindingType')}</Label>
               <Select
-                id="bindingType"
-                name="bindingType"
                 value={formData.bindingType || ''}
-                onChange={handleChange}
+                onValueChange={(v) => handleSelectChange('bindingType', v)}
               >
-                {bindingTypes.map((bt) => (
-                  <option key={bt.value} value={bt.value}>
-                    {bt.label}
-                  </option>
-                ))}
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('selectBinding')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {bindingTypes.map((bt) => (
+                    <SelectItem key={bt.value} value={bt.value}>
+                      {bt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           </div>
@@ -453,18 +479,21 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="currency">{t('currency')}</Label>
+              <Label>{t('currency')}</Label>
               <Select
-                id="currency"
-                name="currency"
                 value={formData.currency || 'TRY'}
-                onChange={handleChange}
+                onValueChange={(v) => handleSelectChange('currency', v)}
               >
-                {currencies.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           </div>
@@ -472,19 +501,21 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
 
         <TabsContent value="organization" className="space-y-4 pt-4">
           <div>
-            <Label htmlFor="locationId">{t('location')}</Label>
+            <Label>{t('location')}</Label>
             <Select
-              id="locationId"
-              name="locationId"
-              value={formData.locationId || ''}
-              onChange={handleChange}
+              value={formData.locationId ? String(formData.locationId) : ''}
+              onValueChange={(v) => handleSelectChange('locationId', v)}
             >
-              <option value="">{t('selectBinding')}</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.name} ({loc.type})
-                </option>
-              ))}
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t('selectBinding')} />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.id} value={String(loc.id)}>
+                    {loc.name} ({loc.type})
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
@@ -532,9 +563,8 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
                       : 'border-input hover:bg-accent'
                   }`}
                   style={{
-                    borderColor: formData.collectionIds?.includes(col.id) && col.color
-                      ? col.color
-                      : undefined,
+                    borderColor:
+                      formData.collectionIds?.includes(col.id) && col.color ? col.color : undefined,
                   }}
                 >
                   <input
@@ -549,10 +579,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
                     }}
                   />
                   {col.color && (
-                    <span
-                      className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: col.color }}
-                    />
+                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: col.color }} />
                   )}
                   {col.name}
                 </label>
@@ -566,11 +593,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
       </Tabs>
 
       <div className="flex gap-3 pt-4 border-t">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-        >
+        <Button type="button" variant="outline" onClick={() => router.back()}>
           {tc('cancel')}
         </Button>
         <Button type="submit" disabled={isLoading}>

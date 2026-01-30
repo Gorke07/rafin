@@ -2,7 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { Plus, MapPin, Home, Armchair, BookOpen, Trash2, Loader2, ChevronDown, ChevronRight, X } from 'lucide-react'
+import {
+  Plus,
+  MapPin,
+  Home,
+  Armchair,
+  BookOpen,
+  Trash2,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+  X,
+} from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -18,7 +29,12 @@ interface Location {
 
 const typeConfig = {
   room: { icon: Home, label: 'Oda', color: 'bg-blue-500', next: 'furniture' as LocationType },
-  furniture: { icon: Armchair, label: 'Mobilya', color: 'bg-green-500', next: 'shelf' as LocationType },
+  furniture: {
+    icon: Armchair,
+    label: 'Mobilya',
+    color: 'bg-green-500',
+    next: 'shelf' as LocationType,
+  },
   shelf: { icon: BookOpen, label: 'Raf', color: 'bg-orange-500', next: null },
 }
 
@@ -59,7 +75,7 @@ export default function LocationsPage() {
   }
 
   const toggleExpand = (id: number) => {
-    setExpandedIds(prev => {
+    setExpandedIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -190,7 +206,7 @@ export default function LocationsPage() {
         </div>
 
         {/* Children */}
-        {isExpanded && location.children?.map(child => renderLocation(child, level + 1))}
+        {isExpanded && location.children?.map((child) => renderLocation(child, level + 1))}
       </div>
     )
   }
@@ -213,8 +229,14 @@ export default function LocationsPage() {
 
       {/* Add Form Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={cancelAdd}>
-          <div className="bg-card rounded-lg p-6 w-full max-w-md shadow-lg" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={cancelAdd}
+        >
+          <div
+            className="bg-card rounded-lg p-6 w-full max-w-md shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">
                 {addingToParent ? (
@@ -236,7 +258,7 @@ export default function LocationsPage() {
               {/* Type selector (only when adding to root) */}
               {!addingToParent && (
                 <div className="flex gap-2">
-                  {(['room', 'furniture', 'shelf'] as LocationType[]).map(type => {
+                  {(['room', 'furniture', 'shelf'] as LocationType[]).map((type) => {
                     const cfg = typeConfig[type]
                     const TypeIcon = cfg.icon
                     return (
@@ -266,7 +288,13 @@ export default function LocationsPage() {
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder={newType === 'room' ? t('roomPlaceholder') : newType === 'furniture' ? t('furniturePlaceholder') : t('shelfPlaceholder')}
+                  placeholder={
+                    newType === 'room'
+                      ? t('roomPlaceholder')
+                      : newType === 'furniture'
+                        ? t('furniturePlaceholder')
+                        : t('shelfPlaceholder')
+                  }
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
                   autoFocus
                   onKeyDown={(e) => {
@@ -282,22 +310,23 @@ export default function LocationsPage() {
                   <label className="block text-sm font-medium mb-1">{t('parentLocation')}</label>
                   <select
                     onChange={(e) => {
-                      const parent = flatLocations.find(l => l.id === Number(e.target.value))
+                      const parent = flatLocations.find((l) => l.id === Number(e.target.value))
                       setAddingToParent(parent || null)
                     }}
                     className="w-full rounded-md border border-input bg-background px-3 py-2"
                   >
                     <option value="">{t('selectParent')}</option>
                     {flatLocations
-                      .filter(l => {
+                      .filter((l) => {
                         if (newType === 'furniture') return l.type === 'room'
                         if (newType === 'shelf') return l.type === 'furniture'
                         return false
                       })
-                      .map(l => (
-                        <option key={l.id} value={l.id}>{l.name}</option>
-                      ))
-                    }
+                      .map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
               )}
@@ -346,7 +375,7 @@ export default function LocationsPage() {
         </div>
       ) : (
         <div className="rounded-lg border bg-card p-4">
-          {locations.map(location => renderLocation(location))}
+          {locations.map((location) => renderLocation(location))}
         </div>
       )}
 
@@ -354,17 +383,23 @@ export default function LocationsPage() {
       {locations.length > 0 && (
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <div className="bg-blue-500 p-1 rounded"><Home className="h-3 w-3 text-white" /></div>
+            <div className="bg-blue-500 p-1 rounded">
+              <Home className="h-3 w-3 text-white" />
+            </div>
             <span>{t('room')}</span>
           </div>
           <span>→</span>
           <div className="flex items-center gap-2">
-            <div className="bg-green-500 p-1 rounded"><Armchair className="h-3 w-3 text-white" /></div>
+            <div className="bg-green-500 p-1 rounded">
+              <Armchair className="h-3 w-3 text-white" />
+            </div>
             <span>{t('furniture')}</span>
           </div>
           <span>→</span>
           <div className="flex items-center gap-2">
-            <div className="bg-orange-500 p-1 rounded"><BookOpen className="h-3 w-3 text-white" /></div>
+            <div className="bg-orange-500 p-1 rounded">
+              <BookOpen className="h-3 w-3 text-white" />
+            </div>
             <span>{t('shelf')}</span>
           </div>
         </div>

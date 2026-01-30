@@ -25,24 +25,26 @@ interface ReadingProgressProps {
 
 const statusConfig = {
   tbr: { label: 'Okunacak', icon: Clock, color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  reading: { label: 'Okunuyor', icon: BookOpen, color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-  completed: { label: 'Tamamlandı', icon: CheckCircle, color: 'bg-green-100 text-green-700 border-green-200' },
+  reading: {
+    label: 'Okunuyor',
+    icon: BookOpen,
+    color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  },
+  completed: {
+    label: 'Tamamlandı',
+    icon: CheckCircle,
+    color: 'bg-green-100 text-green-700 border-green-200',
+  },
   dnf: { label: 'Bırakıldı', icon: XCircle, color: 'bg-red-100 text-red-700 border-red-200' },
 }
 
-export function ReadingProgress({
-  bookId,
-  totalPages,
-  userBook,
-  onUpdate,
-}: ReadingProgressProps) {
+export function ReadingProgress({ bookId, totalPages, userBook, onUpdate }: ReadingProgressProps) {
   const [status, setStatus] = useState<ReadingStatus>(userBook?.status || 'tbr')
   const [currentPage, setCurrentPage] = useState(userBook?.currentPage || 0)
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const progressPercent = totalPages && totalPages > 0
-    ? Math.min(Math.round((currentPage / totalPages) * 100), 100)
-    : 0
+  const progressPercent =
+    totalPages && totalPages > 0 ? Math.min(Math.round((currentPage / totalPages) * 100), 100) : 0
 
   const updateProgress = async (newStatus?: ReadingStatus, newPage?: number) => {
     setIsUpdating(true)
@@ -119,16 +121,14 @@ export function ReadingProgress({
                 disabled={isUpdating}
                 className={cn(
                   'flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors',
-                  status === key
-                    ? config.color
-                    : 'border-input bg-background hover:bg-accent'
+                  status === key ? config.color : 'border-input bg-background hover:bg-accent',
                 )}
               >
                 <Icon className="h-4 w-4" />
                 {config.label}
               </button>
             )
-          }
+          },
         )}
       </div>
 

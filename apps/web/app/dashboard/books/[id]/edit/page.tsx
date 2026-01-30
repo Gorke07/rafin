@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { BookForm } from '@/components/books/BookForm'
-import { ToastProvider } from '@/components/ui/toast'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -50,7 +49,10 @@ export default function EditBookPage({ params }: { params: Promise<{ id: string 
   if (!book) {
     return (
       <div className="space-y-4">
-        <Link href="/dashboard/books" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+        <Link
+          href="/dashboard/books"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-5 w-5" />
           {t('backToBooks')}
         </Link>
@@ -60,22 +62,17 @@ export default function EditBookPage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <ToastProvider>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Link
-            href={`/dashboard/books/${id}`}
-            className="rounded-md p-2 hover:bg-accent"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-3xl font-bold">{t('editBook')}</h1>
-        </div>
-
-        <div className="rounded-lg border bg-card p-6">
-          <BookForm initialData={book as Record<string, unknown> & { id: number }} mode="edit" />
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Link href={`/dashboard/books/${id}`} className="rounded-md p-2 hover:bg-accent">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <h1 className="text-3xl font-bold">{t('editBook')}</h1>
       </div>
-    </ToastProvider>
+
+      <div className="rounded-lg border bg-card p-6">
+        <BookForm initialData={book as Record<string, unknown> & { id: number }} mode="edit" />
+      </div>
+    </div>
   )
 }

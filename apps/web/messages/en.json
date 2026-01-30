@@ -113,7 +113,20 @@
     "storePlaceholder": "Amazon, Barnes & Noble, etc.",
     "noCategories": "No categories yet",
     "noCollections": "No collections yet",
-    "titleColumn": "Title"
+    "titleColumn": "Title",
+    "richText": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "heading2": "Heading 2",
+      "heading3": "Heading 3",
+      "bulletList": "Bullet List",
+      "orderedList": "Ordered List",
+      "blockquote": "Blockquote",
+      "link": "Link",
+      "clearFormatting": "Clear Formatting",
+      "linkPrompt": "Enter URL:"
+    }
   },
   "bookNotes": {
     "notesCount": "Notes ({count})",
@@ -171,6 +184,7 @@
     "edit": "Edit",
     "addToCollection": "Add to Collection",
     "confirmDelete": "Are you sure?",
+    "confirmDeleteDescription": "This book will be permanently deleted. This action cannot be undone.",
     "yesDelete": "Yes, Delete",
     "deleteBook": "Delete"
   },

@@ -61,19 +61,41 @@ export default function DashboardPage() {
   }
 
   const statCards = [
-    { label: td('totalBooks'), value: stats.totalBooks, icon: BookOpen, color: 'bg-blue-500', href: '/dashboard/books' },
-    { label: td('locations'), value: stats.totalLocations, icon: MapPin, color: 'bg-green-500', href: '/dashboard/locations' },
-    { label: td('currentlyReading'), value: stats.currentlyReading, icon: BookMarked, color: 'bg-orange-500', href: '/dashboard/reading' },
-    { label: td('booksRead'), value: stats.booksRead, icon: TrendingUp, color: 'bg-purple-500', href: '/dashboard/reading' },
+    {
+      label: td('totalBooks'),
+      value: stats.totalBooks,
+      icon: BookOpen,
+      color: 'bg-blue-500',
+      href: '/dashboard/books',
+    },
+    {
+      label: td('locations'),
+      value: stats.totalLocations,
+      icon: MapPin,
+      color: 'bg-green-500',
+      href: '/dashboard/locations',
+    },
+    {
+      label: td('currentlyReading'),
+      value: stats.currentlyReading,
+      icon: BookMarked,
+      color: 'bg-orange-500',
+      href: '/dashboard/reading',
+    },
+    {
+      label: td('booksRead'),
+      value: stats.booksRead,
+      icon: TrendingUp,
+      color: 'bg-purple-500',
+      href: '/dashboard/reading',
+    },
   ]
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">{t('home')}</h1>
-        <p className="mt-2 text-muted-foreground">
-          {td('welcome')}
-        </p>
+        <p className="mt-2 text-muted-foreground">{td('welcome')}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

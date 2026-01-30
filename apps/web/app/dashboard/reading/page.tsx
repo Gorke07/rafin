@@ -40,9 +40,7 @@ export default function ReadingPage() {
         <div className="rounded-lg border bg-card p-12 text-center">
           <BookMarked className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-4 text-lg font-medium">{t('noBooks')}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t('noBooksHint')}
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{t('noBooksHint')}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

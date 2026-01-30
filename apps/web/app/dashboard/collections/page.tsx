@@ -7,7 +7,7 @@ import { Plus, Library, Loader2, MoreVertical, Trash2, Edit, Sparkles } from 'lu
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ToastProvider, useToast } from '@/components/ui/toast'
+import { useToast } from '@/hooks/use-toast'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -175,9 +175,7 @@ function CollectionsContent() {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Library className="mb-4 h-16 w-16 text-muted-foreground/30" />
           <h2 className="text-lg font-semibold">{t('noCollections')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('organizeBooks')}
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t('organizeBooks')}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -241,9 +239,5 @@ function CollectionsContent() {
 }
 
 export default function CollectionsPage() {
-  return (
-    <ToastProvider>
-      <CollectionsContent />
-    </ToastProvider>
-  )
+  return <CollectionsContent />
 }

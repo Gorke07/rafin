@@ -1,11 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Loader2, BookOpen, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { BookOpen, Image as ImageIcon, Loader2, Search } from 'lucide-react'
+import { useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -21,6 +27,7 @@ interface BookLookupResult {
   coverUrl?: string
   translator?: string
   bindingType?: 'paperback' | 'hardcover' | 'ebook'
+  sourceUrl?: string
 }
 
 interface ISBNLookupProps {
@@ -31,7 +38,7 @@ interface ISBNLookupProps {
 type SearchMode = 'isbn' | 'title'
 
 const sources = [
-  { id: '', name: 'Otomatik Seç' },
+  { id: 'auto', name: 'Otomatik Seç' },
   { id: 'kitapyurdu', name: 'Kitapyurdu' },
   { id: 'bkmkitap', name: 'BKM Kitap' },
   { id: 'idefix', name: 'İdefix' },
@@ -40,7 +47,7 @@ const sources = [
 ]
 
 const titleSources = [
-  { id: '', name: 'Tümü' },
+  { id: 'all', name: 'Tümü' },
   { id: 'kitapyurdu', name: 'Kitapyurdu' },
   { id: 'bkmkitap', name: 'BKM Kitap' },
   { id: 'idefix', name: 'İdefix' },
@@ -51,7 +58,7 @@ const titleSources = [
 export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
   const [searchMode, setSearchMode] = useState<SearchMode>('isbn')
   const [query, setQuery] = useState('')
-  const [source, setSource] = useState('')
+  const [source, setSource] = useState('auto')
   const [isLoading, setIsLoading] = useState(false)
   const [searchResults, setSearchResults] = useState<BookLookupResult[]>([])
   const [showResults, setShowResults] = useState(false)
@@ -67,11 +74,13 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
     setShowResults(false)
 
     try {
+      const effectiveSource = source === 'auto' || source === 'all' ? '' : source
+
       if (searchMode === 'isbn') {
         // ISBN lookup
         const params = new URLSearchParams({ isbn: query.replace(/[-\s]/g, '') })
-        if (source) {
-          params.append('source', source)
+        if (effectiveSource) {
+          params.append('source', effectiveSource)
         }
 
         const response = await fetch(`${API_URL}/api/book-lookup?${params}`, {
@@ -89,8 +98,8 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
       } else {
         // Title search
         const params = new URLSearchParams({ q: query.trim() })
-        if (source) {
-          params.append('source', source)
+        if (effectiveSource) {
+          params.append('source', effectiveSource)
         }
 
         const response = await fetch(`${API_URL}/api/book-lookup/search?${params}`, {
@@ -119,7 +128,33 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
     }
   }
 
-  const handleSelectBook = (book: BookLookupResult) => {
+  const handleSelectBook = async (book: BookLookupResult) => {
+    if (book.sourceUrl) {
+      // Fetch full details (including description) from the product page
+      try {
+        setIsLoading(true)
+        const params = new URLSearchParams({ url: book.sourceUrl })
+        const response = await fetch(`${API_URL}/api/book-lookup/detail?${params}`, {
+          credentials: 'include',
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.book) {
+            // Merge: full details take priority, but keep search result data as fallback
+            onBookFound({ ...book, ...data.book })
+            setShowResults(false)
+            setSearchResults([])
+            setQuery('')
+            return
+          }
+        }
+      } catch {
+        // Fall through to use the search result data as-is
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     onBookFound(book)
     setShowResults(false)
     setSearchResults([])
@@ -144,7 +179,12 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
       <div className="flex items-center gap-1 rounded-md border bg-muted/40 p-1 w-fit">
         <button
           type="button"
-          onClick={() => { setSearchMode('isbn'); setSource(''); setShowResults(false); setSearchResults([]) }}
+          onClick={() => {
+            setSearchMode('isbn')
+            setSource('auto')
+            setShowResults(false)
+            setSearchResults([])
+          }}
           className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
             searchMode === 'isbn'
               ? 'bg-background text-foreground shadow-sm'
@@ -155,7 +195,12 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
         </button>
         <button
           type="button"
-          onClick={() => { setSearchMode('title'); setSource(''); setShowResults(false); setSearchResults([]) }}
+          onClick={() => {
+            setSearchMode('title')
+            setSource('all')
+            setShowResults(false)
+            setSearchResults([])
+          }}
           className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
             searchMode === 'title'
               ? 'bg-background text-foreground shadow-sm'
@@ -168,9 +213,7 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
 
       <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto]">
         <div>
-          <Label htmlFor="book-search-input">
-            {searchMode === 'isbn' ? 'ISBN' : 'Kitap Adı'}
-          </Label>
+          <Label htmlFor="book-search-input">{searchMode === 'isbn' ? 'ISBN' : 'Kitap Adı'}</Label>
           <Input
             id="book-search-input"
             type="text"
@@ -182,26 +225,23 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
         </div>
 
         <div>
-          <Label htmlFor="source">Kaynak</Label>
-          <Select
-            id="source"
-            value={source}
-            onChange={(e) => setSource(e.target.value)}
-          >
-            {(searchMode === 'isbn' ? sources : titleSources).map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
+          <Label>Kaynak</Label>
+          <Select value={source} onValueChange={setSource}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(searchMode === 'isbn' ? sources : titleSources).map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </div>
 
         <div className="flex items-end">
-          <Button
-            type="button"
-            onClick={handleLookup}
-            disabled={isLoading || !query.trim()}
-          >
+          <Button type="button" onClick={handleLookup} disabled={isLoading || !query.trim()}>
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -240,11 +280,7 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
                 {/* Thumbnail */}
                 <div className="h-16 w-11 flex-shrink-0 overflow-hidden rounded bg-muted">
                   {book.coverUrl ? (
-                    <img
-                      src={book.coverUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={book.coverUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full items-center justify-center">
                       <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
@@ -254,17 +290,11 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
 
                 {/* Info */}
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium leading-tight line-clamp-1">
-                    {book.title}
-                  </p>
-                  <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">
-                    {book.author}
-                  </p>
+                  <p className="font-medium leading-tight line-clamp-1">{book.title}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">{book.author}</p>
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                     {book.publisher && <span>{book.publisher}</span>}
-                    {book.publisher && book.publishedYear && (
-                      <span className="text-border">·</span>
-                    )}
+                    {book.publisher && book.publishedYear && <span className="text-border">·</span>}
                     {book.publishedYear && <span>{book.publishedYear}</span>}
                     {book.isbn && (
                       <>

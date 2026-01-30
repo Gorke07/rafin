@@ -3,8 +3,14 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
-import { useToast } from '@/components/ui/toast'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
 import { Download, Globe, Loader2, Lock, Monitor, Moon, Palette, Sun, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
@@ -220,9 +226,14 @@ function LanguageSection() {
 
   return (
     <div className="space-y-2">
-      <Select value={locale} onChange={(e) => handleChange(e.target.value)}>
-        <option value="en">English</option>
-        <option value="tr">Türkçe</option>
+      <Select value={locale} onValueChange={handleChange}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="en">English</SelectItem>
+          <SelectItem value="tr">Türkçe</SelectItem>
+        </SelectContent>
       </Select>
     </div>
   )

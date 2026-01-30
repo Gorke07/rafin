@@ -102,12 +102,7 @@ export function BookNotes({ bookId }: BookNotesProps) {
           <MessageSquare className="h-5 w-5" />
           Notlar ({notes.length})
         </h3>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setShowForm(!showForm)}
-        >
+        <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(!showForm)}>
           <Plus className="mr-1 h-4 w-4" />
           Not Ekle
         </Button>
@@ -134,7 +129,12 @@ export function BookNotes({ bookId }: BookNotesProps) {
               />
             </div>
             <div className="flex gap-2">
-              <Button type="button" size="sm" onClick={handleAddNote} disabled={isSaving || !newNote.trim()}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleAddNote}
+                disabled={isSaving || !newNote.trim()}
+              >
                 {isSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
                 Kaydet
               </Button>
@@ -156,9 +156,7 @@ export function BookNotes({ bookId }: BookNotesProps) {
       )}
 
       {notes.length === 0 ? (
-        <p className="py-4 text-center text-sm text-muted-foreground">
-          Henüz not eklenmemiş
-        </p>
+        <p className="py-4 text-center text-sm text-muted-foreground">Henüz not eklenmemiş</p>
       ) : (
         <div className="space-y-3">
           {notes.map((note) => (
@@ -176,9 +174,7 @@ export function BookNotes({ bookId }: BookNotesProps) {
               </div>
               <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                 <span>{formatDate(note.createdAt)}</span>
-                {note.pageNumber && (
-                  <span>Sayfa {note.pageNumber}</span>
-                )}
+                {note.pageNumber && <span>Sayfa {note.pageNumber}</span>}
               </div>
             </div>
           ))}

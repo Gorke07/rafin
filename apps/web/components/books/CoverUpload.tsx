@@ -15,20 +15,13 @@ interface CoverUploadProps {
   onError?: (error: string) => void
 }
 
-export function CoverUpload({
-  coverPath,
-  coverUrl,
-  onCoverChange,
-  onError,
-}: CoverUploadProps) {
+export function CoverUpload({ coverPath, coverUrl, onCoverChange, onError }: CoverUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [showUrlInput, setShowUrlInput] = useState(false)
   const [urlInput, setUrlInput] = useState(coverUrl || '')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const currentCover = coverPath
-    ? `${API_URL}${coverPath}`
-    : coverUrl || null
+  const currentCover = coverPath ? `${API_URL}${coverPath}` : coverUrl || null
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -99,7 +92,7 @@ export function CoverUpload({
         className={cn(
           'relative aspect-[2/3] w-full max-w-[200px] rounded-lg border-2 border-dashed',
           'flex items-center justify-center bg-muted/50',
-          isUploading && 'opacity-50'
+          isUploading && 'opacity-50',
         )}
       >
         {currentCover ? (

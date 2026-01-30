@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Plus, Check, Loader2 } from 'lucide-react'
+import { Plus, Check, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
@@ -121,23 +122,14 @@ export function AddToCollectionModal({
     }
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="mx-4 w-full max-w-md rounded-lg border bg-card shadow-lg">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="text-lg font-semibold">Koleksiyona Ekle</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1 hover:bg-accent"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Koleksiyona Ekle</DialogTitle>
+        </DialogHeader>
 
-        <div className="max-h-[400px] overflow-y-auto p-4">
+        <div className="max-h-[400px] overflow-y-auto">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -152,15 +144,13 @@ export function AddToCollectionModal({
                   <button
                     key={col.id}
                     type="button"
-                    onClick={() =>
-                      isInCollection ? handleRemove(col.id) : handleAdd(col.id)
-                    }
+                    onClick={() => (isInCollection ? handleRemove(col.id) : handleAdd(col.id))}
                     disabled={isProcessing}
                     className={cn(
                       'flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors',
                       isInCollection
                         ? 'border-primary bg-primary/5'
-                        : 'border-input hover:bg-accent'
+                        : 'border-input hover:bg-accent',
                     )}
                   >
                     {col.color && (
@@ -171,9 +161,7 @@ export function AddToCollectionModal({
                     )}
                     <div className="flex-1">
                       <p className="font-medium">{col.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {col.bookCount} kitap
-                      </p>
+                      <p className="text-xs text-muted-foreground">{col.bookCount} kitap</p>
                     </div>
                     {isProcessing ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -223,7 +211,7 @@ export function AddToCollectionModal({
             </Button>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

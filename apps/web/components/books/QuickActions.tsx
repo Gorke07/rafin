@@ -3,7 +3,19 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Edit, Trash2, Library, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -14,8 +26,9 @@ interface QuickActionsProps {
 
 export function QuickActions({ bookId, onCollectionClick }: QuickActionsProps) {
   const router = useRouter()
+  const t = useTranslations('quickActions')
+  const tc = useTranslations('common')
   const [isDeleting, setIsDeleting] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -43,49 +56,39 @@ export function QuickActions({ bookId, onCollectionClick }: QuickActionsProps) {
         onClick={() => router.push(`/dashboard/books/${bookId}/edit`)}
       >
         <Edit className="mr-1 h-4 w-4" />
-        Düzenle
+        {t('edit')}
       </Button>
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onCollectionClick}
-      >
+      <Button variant="outline" size="sm" onClick={onCollectionClick}>
         <Library className="mr-1 h-4 w-4" />
-        Koleksiyona Ekle
+        {t('addToCollection')}
       </Button>
 
-      {showConfirm ? (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Emin misiniz?</span>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
           <Button
-            variant="destructive"
+            variant="outline"
             size="sm"
-            onClick={handleDelete}
-            disabled={isDeleting}
+            className="text-destructive hover:bg-destructive/10"
           >
-            {isDeleting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-            Evet, Sil
+            <Trash2 className="mr-1 h-4 w-4" />
+            {t('deleteBook')}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowConfirm(false)}
-          >
-            İptal
-          </Button>
-        </div>
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-destructive hover:bg-destructive/10"
-          onClick={() => setShowConfirm(true)}
-        >
-          <Trash2 className="mr-1 h-4 w-4" />
-          Sil
-        </Button>
-      )}
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tc('confirm')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('confirmDeleteDescription')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              {t('yesDelete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
