@@ -1,23 +1,28 @@
 'use client'
 
+import { use, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import DOMPurify from 'dompurify'
+import { ArrowLeft, Book, Calendar, Image as ImageIcon, MapPin, Tag } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BookNotes } from '@/components/books/BookNotes'
 import { QuickActions } from '@/components/books/QuickActions'
 import { ReadingProgress } from '@/components/books/ReadingProgress'
 import { AddToCollectionModal } from '@/components/collections/AddToCollectionModal'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { plainTextToHtml } from '@/lib/html-utils'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import DOMPurify from 'dompurify'
-import { ArrowLeft, Book, Calendar, Image as ImageIcon, Loader2, MapPin, Tag } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { use, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 interface Book {
   id: number
   title: string
+  originalTitle?: string | null
   authors?: Array<{ id: number; name: string }>
   publishers?: Array<{ id: number; name: string }>
   isbn?: string | null
@@ -98,8 +103,24 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-md" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-5 w-40" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[280px_1fr]">
+          <div className="space-y-6">
+            <Skeleton className="aspect-[2/3] w-full rounded-lg" />
+            <Skeleton className="h-48 w-full rounded-lg" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-64 w-full rounded-lg" />
+          </div>
+        </div>
       </div>
     )
   }
@@ -107,14 +128,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   if (!book) {
     return (
       <div className="space-y-4">
-        <Link
-          href="/dashboard/books"
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          {t('backToBooks')}
-        </Link>
-        <p className="text-center text-muted-foreground py-8">{t('bookNotFound')}</p>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/books">
+            <ArrowLeft className="h-4 w-4" />
+            {t('backToBooks')}
+          </Link>
+        </Button>
+        <p className="py-8 text-center text-muted-foreground">{t('bookNotFound')}</p>
       </div>
     )
   }
@@ -125,11 +145,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/books" className="rounded-md p-2 hover:bg-accent">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/books">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{book.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{book.title}</h1>
           <p className="text-lg text-muted-foreground">
             {book.authors?.map((a) => a.name).join(', ') || '\u2014'}
           </p>
@@ -140,7 +162,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
       <QuickActions bookId={book.id} onCollectionClick={() => setShowCollectionModal(true)} />
 
       {/* Main Content */}
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[280px_1fr]">
         {/* Left Sidebar */}
         <div className="space-y-6">
           {/* Cover */}
@@ -165,58 +187,57 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             }}
           />
 
-          {/* Tags */}
+          {/* Categories */}
           {book.categories && book.categories.length > 0 && (
-            <div className="rounded-lg border bg-card p-4 space-y-2">
-              <h3 className="flex items-center gap-2 font-semibold text-sm">
-                <Tag className="h-4 w-4" />
-                {t('categories')}
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {book.categories.map((cat) => (
-                  <span
-                    key={cat.id}
-                    className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
-                  >
-                    {cat.name}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <Card>
+              <CardContent className="space-y-2">
+                <h3 className="flex items-center gap-2 text-sm font-semibold">
+                  <Tag className="h-4 w-4" />
+                  {t('categories')}
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {book.categories.map((cat) => (
+                    <Badge key={cat.id} variant="secondary">
+                      {cat.name}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Collections */}
           {book.collections && book.collections.length > 0 && (
-            <div className="rounded-lg border bg-card p-4 space-y-2">
-              <h3 className="flex items-center gap-2 font-semibold text-sm">
-                <Book className="h-4 w-4" />
-                {t('collections')}
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {book.collections.map((col) => (
-                  <Link
-                    key={col.id}
-                    href={`/dashboard/collections/${col.id}`}
-                    className="flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium hover:bg-accent"
-                  >
-                    {col.color && (
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: col.color }}
-                      />
-                    )}
-                    {col.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
+            <Card>
+              <CardContent className="space-y-2">
+                <h3 className="flex items-center gap-2 text-sm font-semibold">
+                  <Book className="h-4 w-4" />
+                  {t('collections')}
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {book.collections.map((col) => (
+                    <Link key={col.id} href={`/dashboard/collections/${col.id}`}>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                        {col.color && (
+                          <span
+                            className="mr-1.5 h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: col.color }}
+                          />
+                        )}
+                        {col.name}
+                      </Badge>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
 
         {/* Right Content */}
         <div>
           <Tabs defaultValue="details">
-            <TabsList className="w-full grid grid-cols-3">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="details">{t('details')}</TabsTrigger>
               <TabsTrigger value="notes">{t('notes')}</TabsTrigger>
               <TabsTrigger value="purchase">{t('purchase')}</TabsTrigger>
@@ -225,85 +246,92 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             <TabsContent value="details" className="space-y-6 pt-4">
               {/* Description */}
               {book.description && (
-                <div className="rounded-lg border bg-card p-6">
-                  <h2 className="mb-3 text-lg font-semibold">{t('description')}</h2>
-                  <SafeHtml
-                    html={plainTextToHtml(book.description)}
-                    className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground"
-                  />
-                </div>
+                <Card>
+                  <CardContent>
+                    <h2 className="mb-3 text-lg font-semibold">{t('description')}</h2>
+                    <SafeHtml
+                      html={plainTextToHtml(book.description)}
+                      className="prose prose-sm max-w-none text-muted-foreground dark:prose-invert"
+                    />
+                  </CardContent>
+                </Card>
               )}
 
               {/* Book Info Grid */}
-              <div className="rounded-lg border bg-card p-6">
-                <h2 className="mb-4 text-lg font-semibold">{t('bookInfo')}</h2>
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
-                  {book.authors && book.authors.length > 0 && (
-                    <div>
-                      <dt className="text-sm text-muted-foreground">{t('author')}</dt>
-                      <dd className="mt-0.5 flex flex-wrap gap-1">
-                        {book.authors.map((a, i) => (
-                          <span key={a.id}>
-                            <Link
-                              href={`/dashboard/authors/${a.id}`}
-                              className="font-medium hover:text-primary"
-                            >
-                              {a.name}
-                            </Link>
-                            {i < book.authors!.length - 1 && ', '}
-                          </span>
-                        ))}
-                      </dd>
-                    </div>
-                  )}
-                  <InfoItem label={t('isbn')} value={book.isbn} />
-                  {book.publishers && book.publishers.length > 0 && (
-                    <div>
-                      <dt className="text-sm text-muted-foreground">{t('publisher')}</dt>
-                      <dd className="mt-0.5 flex flex-wrap gap-1">
-                        {book.publishers.map((p, i) => (
-                          <span key={p.id}>
-                            <Link
-                              href={`/dashboard/publishers/${p.id}`}
-                              className="font-medium hover:text-primary"
-                            >
-                              {p.name}
-                            </Link>
-                            {i < book.publishers!.length - 1 && ', '}
-                          </span>
-                        ))}
-                      </dd>
-                    </div>
-                  )}
-                  <InfoItem label={t('publishedYear')} value={book.publishedYear?.toString()} />
-                  <InfoItem
-                    label={t('pageCount')}
-                    value={book.pageCount ? `${book.pageCount} ${tc('pages')}` : undefined}
-                  />
-                  <InfoItem label={t('translator')} value={book.translator} />
-                  <InfoItem label={t('language')} value={book.language} />
-                  <InfoItem
-                    label={t('bindingType')}
-                    value={book.bindingType ? bindingTypeLabels[book.bindingType] : undefined}
-                  />
-                  {book.locationId && (
-                    <div>
-                      <dt className="text-sm text-muted-foreground">{t('location')}</dt>
-                      <dd className="mt-0.5 flex items-center gap-1 font-medium">
-                        <MapPin className="h-4 w-4" />
-                        {t('shelfNumber', { id: book.locationId })}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
+              <Card>
+                <CardContent>
+                  <h2 className="mb-4 text-lg font-semibold">{t('bookInfo')}</h2>
+                  <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    {book.authors && book.authors.length > 0 && (
+                      <div>
+                        <dt className="text-sm text-muted-foreground">{t('author')}</dt>
+                        <dd className="mt-0.5 flex flex-wrap gap-1">
+                          {book.authors.map((a, i) => (
+                            <span key={a.id}>
+                              <Link
+                                href={`/dashboard/authors/${a.id}`}
+                                className="font-medium hover:text-primary"
+                              >
+                                {a.name}
+                              </Link>
+                              {i < book.authors!.length - 1 && ', '}
+                            </span>
+                          ))}
+                        </dd>
+                      </div>
+                    )}
+                    <InfoItem label={t('isbn')} value={book.isbn} />
+                    {book.publishers && book.publishers.length > 0 && (
+                      <div>
+                        <dt className="text-sm text-muted-foreground">{t('publisher')}</dt>
+                        <dd className="mt-0.5 flex flex-wrap gap-1">
+                          {book.publishers.map((p, i) => (
+                            <span key={p.id}>
+                              <Link
+                                href={`/dashboard/publishers/${p.id}`}
+                                className="font-medium hover:text-primary"
+                              >
+                                {p.name}
+                              </Link>
+                              {i < book.publishers!.length - 1 && ', '}
+                            </span>
+                          ))}
+                        </dd>
+                      </div>
+                    )}
+                    <InfoItem label={t('publishedYear')} value={book.publishedYear?.toString()} />
+                    <InfoItem
+                      label={t('pageCount')}
+                      value={book.pageCount ? `${book.pageCount} ${tc('pages')}` : undefined}
+                    />
+                    <InfoItem label={t('translator')} value={book.translator} />
+                    <InfoItem label={t('originalTitle')} value={book.originalTitle} />
+                    <InfoItem label={t('language')} value={book.language} />
+                    <InfoItem
+                      label={t('bindingType')}
+                      value={book.bindingType ? bindingTypeLabels[book.bindingType] : undefined}
+                    />
+                    {book.locationId && (
+                      <div>
+                        <dt className="text-sm text-muted-foreground">{t('location')}</dt>
+                        <dd className="mt-0.5 flex items-center gap-1 font-medium">
+                          <MapPin className="h-4 w-4" />
+                          {t('shelfNumber', { id: book.locationId })}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                </CardContent>
+              </Card>
 
               {/* Copy Note */}
               {book.copyNote && (
-                <div className="rounded-lg border bg-card p-6">
-                  <h2 className="mb-3 text-lg font-semibold">{t('copyNote')}</h2>
-                  <p className="text-sm text-muted-foreground">{book.copyNote}</p>
-                </div>
+                <Card>
+                  <CardContent>
+                    <h2 className="mb-3 text-lg font-semibold">{t('copyNote')}</h2>
+                    <p className="text-sm text-muted-foreground">{book.copyNote}</p>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
 
@@ -312,32 +340,36 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             </TabsContent>
 
             <TabsContent value="purchase" className="space-y-6 pt-4">
-              <div className="rounded-lg border bg-card p-6">
-                <h2 className="mb-4 text-lg font-semibold">{t('purchaseInfo')}</h2>
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
-                  <InfoItem label={t('store')} value={book.store} />
-                  <InfoItem
-                    label={t('date')}
-                    value={book.purchaseDate ? formatDate(book.purchaseDate) : undefined}
-                  />
-                  <InfoItem
-                    label={t('price')}
-                    value={
-                      book.purchasePrice
-                        ? formatCurrency(Number(book.purchasePrice), book.currency || 'TRY')
-                        : undefined
-                    }
-                  />
-                  <InfoItem label={t('currency')} value={book.currency} />
-                </dl>
-              </div>
+              <Card>
+                <CardContent>
+                  <h2 className="mb-4 text-lg font-semibold">{t('purchaseInfo')}</h2>
+                  <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <InfoItem label={t('store')} value={book.store} />
+                    <InfoItem
+                      label={t('date')}
+                      value={book.purchaseDate ? formatDate(book.purchaseDate) : undefined}
+                    />
+                    <InfoItem
+                      label={t('price')}
+                      value={
+                        book.purchasePrice
+                          ? formatCurrency(Number(book.purchasePrice), book.currency || 'TRY')
+                          : undefined
+                      }
+                    />
+                    <InfoItem label={t('currency')} value={book.currency} />
+                  </dl>
+                </CardContent>
+              </Card>
 
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{t('addedDate', { date: formatDate(book.createdAt) })}</span>
-                </div>
-              </div>
+              <Card>
+                <CardContent>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>{t('addedDate', { date: formatDate(book.createdAt) })}</span>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
@@ -355,6 +387,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   )
 }
 
+/**
+ * Renders sanitized HTML content safely using DOMPurify.
+ * Only used for book descriptions that may contain formatting.
+ */
 function SafeHtml({ html, className }: { html: string; className?: string }) {
   const sanitized = typeof window !== 'undefined' ? DOMPurify.sanitize(html) : html
   return <div className={className} dangerouslySetInnerHTML={{ __html: sanitized }} />

@@ -212,6 +212,8 @@
     "createFailed": "Failed to create",
     "deleted": "Collection deleted",
     "deleteFailed": "Failed to delete",
+    "deleteCollection": "Delete collection?",
+    "deleteCollectionDescription": "This will permanently delete \"{name}\" and remove all book associations. This action cannot be undone.",
     "updated": "Collection updated",
     "updateFailed": "Failed to update",
     "bookRemoved": "Book removed from collection",

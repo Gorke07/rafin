@@ -4,10 +4,24 @@ import { useState, useEffect, use } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Book, Loader2, Trash2, Edit, X, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Book, Edit, Image as ImageIcon, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { EmptyState } from '@/components/dashboard/empty-state'
 import { useToast } from '@/hooks/use-toast'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -120,8 +134,26 @@ function CollectionDetailContent({ id }: { id: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-md" />
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="h-8 w-48" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="flex gap-4">
+                <Skeleton className="h-24 w-16 rounded-md" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-1/4" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     )
   }
@@ -129,14 +161,13 @@ function CollectionDetailContent({ id }: { id: string }) {
   if (!collection) {
     return (
       <div className="space-y-4">
-        <Link
-          href="/dashboard/collections"
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          {t('backToCollections')}
-        </Link>
-        <p className="text-center text-muted-foreground py-8">{t('collectionNotFound')}</p>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/collections">
+            <ArrowLeft className="h-4 w-4" />
+            {t('backToCollections')}
+          </Link>
+        </Button>
+        <p className="py-8 text-center text-muted-foreground">{t('collectionNotFound')}</p>
       </div>
     )
   }
@@ -145,16 +176,18 @@ function CollectionDetailContent({ id }: { id: string }) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/collections" className="rounded-md p-2 hover:bg-accent">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div className="flex items-center gap-3 flex-1">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/collections">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </Button>
+        <div className="flex flex-1 items-center gap-3">
           <div
             className="h-8 w-8 shrink-0 rounded-lg"
             style={{ backgroundColor: collection.color || '#6b7280' }}
           />
           {isEditing ? (
-            <div className="flex items-center gap-2 flex-1">
+            <div className="flex flex-1 items-center gap-2">
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
@@ -174,7 +207,7 @@ function CollectionDetailContent({ id }: { id: string }) {
               </Button>
             </div>
           ) : (
-            <h1 className="text-3xl font-bold">{collection.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{collection.name}</h1>
           )}
         </div>
         <div className="flex gap-2">
@@ -182,70 +215,92 @@ function CollectionDetailContent({ id }: { id: string }) {
             <Edit className="mr-1 h-4 w-4" />
             {tc('edit')}
           </Button>
-          <Button variant="outline" size="sm" className="text-destructive" onClick={handleDelete}>
-            <Trash2 className="mr-1 h-4 w-4" />
-            {tc('delete')}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Trash2 className="mr-1 h-4 w-4" />
+                {tc('delete')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('deleteCollection')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('deleteCollectionDescription', { name: collection.name })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                  {tc('delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
       {collection.description && <p className="text-muted-foreground">{collection.description}</p>}
 
-      <p className="text-sm text-muted-foreground">{t('booksCount', { count: books.length })}</p>
+      <Badge variant="secondary">{t('booksCount', { count: books.length })}</Badge>
 
       {/* Books Grid */}
       {books.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Book className="mb-4 h-16 w-16 text-muted-foreground/30" />
-          <h2 className="text-lg font-semibold">{t('noBooksInCollection')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t('addBooksHint')}</p>
-        </div>
+        <EmptyState
+          icon={Book}
+          title={t('noBooksInCollection')}
+          description={t('addBooksHint')}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {books.map(({ book }) => {
             const coverSrc = book.coverPath ? `${API_URL}${book.coverPath}` : book.coverUrl || null
 
             return (
-              <div
-                key={book.id}
-                className="group flex gap-4 rounded-lg border bg-card p-4 transition-shadow hover:shadow-md"
-              >
-                <Link
-                  href={`/dashboard/books/${book.id}`}
-                  className="h-24 w-16 shrink-0 overflow-hidden rounded-md bg-muted"
-                >
-                  {coverSrc ? (
-                    <img src={coverSrc} alt={book.title} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
-                    </div>
-                  )}
-                </Link>
+              <Card key={book.id} className="group">
+                <CardContent className="flex gap-4">
+                  <Link
+                    href={`/dashboard/books/${book.id}`}
+                    className="h-24 w-16 shrink-0 overflow-hidden rounded-md bg-muted"
+                  >
+                    {coverSrc ? (
+                      <img
+                        src={coverSrc}
+                        alt={book.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
+                      </div>
+                    )}
+                  </Link>
 
-                <div className="flex flex-1 flex-col justify-between min-w-0">
-                  <div>
-                    <Link
-                      href={`/dashboard/books/${book.id}`}
-                      className="font-semibold hover:text-primary truncate block"
-                    >
-                      {book.title}
-                    </Link>
-                    <p className="text-sm text-muted-foreground truncate">{book.author}</p>
+                  <div className="flex min-w-0 flex-1 flex-col justify-between">
+                    <div>
+                      <Link
+                        href={`/dashboard/books/${book.id}`}
+                        className="block truncate font-semibold hover:text-primary"
+                      >
+                        {book.title}
+                      </Link>
+                      <p className="truncate text-sm text-muted-foreground">{book.author}</p>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{book.pageCount ? `${book.pageCount} ${tc('pages')}` : ''}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                        onClick={() => handleRemoveBook(book.id)}
+                        title={t('removeBook')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{book.pageCount ? `${book.pageCount} ${tc('pages')}` : ''}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveBook(book.id)}
-                      className="rounded-md p-1 text-destructive opacity-0 transition-opacity hover:bg-destructive/10 group-hover:opacity-100"
-                      title={t('removeBook')}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             )
           })}
         </div>

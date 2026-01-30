@@ -212,6 +212,8 @@
     "createFailed": "Oluşturma başarısız",
     "deleted": "Koleksiyon silindi",
     "deleteFailed": "Silme başarısız",
+    "deleteCollection": "Koleksiyonu sil?",
+    "deleteCollectionDescription": "\"{name}\" kalıcı olarak silinecek ve tüm kitap bağlantıları kaldırılacak. Bu işlem geri alınamaz.",
     "updated": "Koleksiyon güncellendi",
     "updateFailed": "Güncelleme başarısız",
     "bookRemoved": "Kitap koleksiyondan çıkarıldı",
