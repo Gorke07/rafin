@@ -12,8 +12,29 @@ import {
   Loader2,
   ChevronDown,
   ChevronRight,
-  X,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { PageHeader } from '@/components/dashboard/page-header'
+import { EmptyState } from '@/components/dashboard/empty-state'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -28,14 +49,9 @@ interface Location {
 }
 
 const typeConfig = {
-  room: { icon: Home, label: 'Oda', color: 'bg-blue-500', next: 'furniture' as LocationType },
-  furniture: {
-    icon: Armchair,
-    label: 'Mobilya',
-    color: 'bg-green-500',
-    next: 'shelf' as LocationType,
-  },
-  shelf: { icon: BookOpen, label: 'Raf', color: 'bg-orange-500', next: null },
+  room: { icon: Home, next: 'furniture' as LocationType },
+  furniture: { icon: Armchair, next: 'shelf' as LocationType },
+  shelf: { icon: BookOpen, next: null },
 }
 
 export default function LocationsPage() {
@@ -64,7 +80,6 @@ export default function LocationsPage() {
         const data = await response.json()
         setLocations(data.locations)
         setFlatLocations(data.flat)
-        // Expand all by default
         setExpandedIds(new Set(data.flat.map((l: Location) => l.id)))
       }
     } catch (error) {
@@ -158,12 +173,12 @@ export default function LocationsPage() {
     return (
       <div key={location.id}>
         <div
-          className={`flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-accent/50 group cursor-pointer`}
+          className="group flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50"
           style={{ marginLeft: `${level * 20}px` }}
           onClick={() => hasChildren && toggleExpand(location.id)}
         >
           {/* Expand/collapse button */}
-          <div className="w-5 flex-shrink-0">
+          <div className="w-5 shrink-0">
             {hasChildren ? (
               isExpanded ? (
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -174,34 +189,38 @@ export default function LocationsPage() {
           </div>
 
           {/* Icon */}
-          <div className={`${config.color} p-1.5 rounded`}>
-            <Icon className="h-4 w-4 text-white" />
+          <div className="rounded bg-muted p-1.5">
+            <Icon className="h-4 w-4 text-muted-foreground" />
           </div>
 
           {/* Name */}
-          <span className="font-medium flex-1">{location.name}</span>
+          <span className="flex-1 font-medium">{location.name}</span>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             {canAddChild && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
                 onClick={(e) => {
                   e.stopPropagation()
                   startAddingChild(location)
                 }}
-                className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
                 title={t('addChild', { type: t(config.next!) })}
               >
                 <Plus className="h-4 w-4" />
-              </button>
+              </Button>
             )}
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-destructive"
               onClick={(e) => handleDelete(location.id, e)}
-              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
               title={tc('delete')}
             >
               <Trash2 className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -213,109 +232,94 @@ export default function LocationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
-          <p className="text-muted-foreground mt-1">{t('subtitle')}</p>
-        </div>
-        <button
-          onClick={startAddingRoom}
-          className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-5 w-5" />
+      <PageHeader title={t('title')} description={t('subtitle')}>
+        <Button onClick={startAddingRoom}>
+          <Plus className="h-4 w-4" />
           {t('addRoom')}
-        </button>
-      </div>
+        </Button>
+      </PageHeader>
 
-      {/* Add Form Modal */}
-      {showAddForm && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          onClick={cancelAdd}
-        >
-          <div
-            className="bg-card rounded-lg p-6 w-full max-w-md shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">
-                {addingToParent ? (
-                  <>
-                    <span className="text-muted-foreground">{addingToParent.name}</span>
-                    <span className="mx-2">→</span>
-                    {t('addChild', { type: t(newType) })}
-                  </>
-                ) : (
-                  t('addRoom')
-                )}
-              </h2>
-              <button onClick={cancelAdd} className="p-1 hover:bg-accent rounded">
-                <X className="h-5 w-5" />
-              </button>
+      {/* Add Form Dialog */}
+      <Dialog open={showAddForm} onOpenChange={(open) => !open && cancelAdd()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {addingToParent ? (
+                <>
+                  <span className="text-muted-foreground">{addingToParent.name}</span>
+                  <span className="mx-2">→</span>
+                  {t('addChild', { type: t(newType) })}
+                </>
+              ) : (
+                t('addRoom')
+              )}
+            </DialogTitle>
+            <DialogDescription>{t('noLocationsHint')}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Type selector (only when adding to root) */}
+            {!addingToParent && (
+              <div className="flex gap-2">
+                {(['room', 'furniture', 'shelf'] as LocationType[]).map((type) => {
+                  const cfg = typeConfig[type]
+                  const TypeIcon = cfg.icon
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setNewType(type)}
+                      className={`flex-1 rounded-lg border-2 p-3 transition-colors ${
+                        newType === type
+                          ? 'border-primary bg-primary/5'
+                          : 'border-transparent bg-muted hover:bg-muted/80'
+                      }`}
+                    >
+                      <div className="mx-auto mb-2 w-fit rounded bg-muted p-2">
+                        <TypeIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <p className="text-center text-sm font-medium">{t(type)}</p>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Name input */}
+            <div>
+              <Label htmlFor="location-name">{t('nameLabel')}</Label>
+              <Input
+                id="location-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder={
+                  newType === 'room'
+                    ? t('roomPlaceholder')
+                    : newType === 'furniture'
+                      ? t('furniturePlaceholder')
+                      : t('shelfPlaceholder')
+                }
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newName.trim()) handleAdd()
+                }}
+              />
             </div>
 
-            <div className="space-y-4">
-              {/* Type selector (only when adding to root) */}
-              {!addingToParent && (
-                <div className="flex gap-2">
-                  {(['room', 'furniture', 'shelf'] as LocationType[]).map((type) => {
-                    const cfg = typeConfig[type]
-                    const TypeIcon = cfg.icon
-                    return (
-                      <button
-                        key={type}
-                        onClick={() => setNewType(type)}
-                        className={`flex-1 p-3 rounded-lg border-2 transition-colors ${
-                          newType === type
-                            ? 'border-primary bg-primary/5'
-                            : 'border-transparent bg-muted hover:bg-muted/80'
-                        }`}
-                      >
-                        <div className={`${cfg.color} p-2 rounded mx-auto w-fit mb-2`}>
-                          <TypeIcon className="h-5 w-5 text-white" />
-                        </div>
-                        <p className="text-sm font-medium text-center">{t(type)}</p>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* Name input */}
+            {/* Parent selector (only when adding to root and type is not room) */}
+            {!addingToParent && newType !== 'room' && (
               <div>
-                <label className="block text-sm font-medium mb-1">{t('nameLabel')}</label>
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder={
-                    newType === 'room'
-                      ? t('roomPlaceholder')
-                      : newType === 'furniture'
-                        ? t('furniturePlaceholder')
-                        : t('shelfPlaceholder')
-                  }
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newName.trim()) handleAdd()
-                    if (e.key === 'Escape') cancelAdd()
+                <Label>{t('parentLocation')}</Label>
+                <Select
+                  onValueChange={(value) => {
+                    const parent = flatLocations.find((l) => l.id === Number(value))
+                    setAddingToParent(parent || null)
                   }}
-                />
-              </div>
-
-              {/* Parent selector (only when adding to root and type is not room) */}
-              {!addingToParent && newType !== 'room' && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">{t('parentLocation')}</label>
-                  <select
-                    onChange={(e) => {
-                      const parent = flatLocations.find((l) => l.id === Number(e.target.value))
-                      setAddingToParent(parent || null)
-                    }}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  >
-                    <option value="">{t('selectParent')}</option>
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t('selectParent')} />
+                  </SelectTrigger>
+                  <SelectContent>
                     {flatLocations
                       .filter((l) => {
                         if (newType === 'furniture') return l.type === 'room'
@@ -323,82 +327,79 @@ export default function LocationsPage() {
                         return false
                       })
                       .map((l) => (
-                        <option key={l.id} value={l.id}>
+                        <SelectItem key={l.id} value={String(l.id)}>
                           {l.name}
-                        </option>
+                        </SelectItem>
                       ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={cancelAdd}
-                  className="flex-1 rounded-md border px-4 py-2 hover:bg-accent"
-                >
-                  {tc('cancel')}
-                </button>
-                <button
-                  onClick={handleAdd}
-                  disabled={isSaving || !newName.trim()}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {tc('add')}
-                </button>
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
+            )}
           </div>
-        </div>
-      )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelAdd}>
+              {tc('cancel')}
+            </Button>
+            <Button onClick={handleAdd} disabled={isSaving || !newName.trim()}>
+              {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {tc('add')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Content */}
       {isLoading ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-        </div>
+        <Card>
+          <CardContent className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3" style={{ marginLeft: `${(i % 3) * 20}px` }}>
+                <Skeleton className="h-5 w-5" />
+                <Skeleton className="h-8 w-8 rounded" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       ) : locations.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-medium">{t('noLocations')}</h3>
-          <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">
-            {t('noLocationsHint')}
-          </p>
-          <button
-            onClick={startAddingRoom}
-            className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="h-5 w-5" />
-            {t('addFirstRoom')}
-          </button>
-        </div>
+        <EmptyState
+          icon={MapPin}
+          title={t('noLocations')}
+          description={t('noLocationsHint')}
+          action={
+            <Button onClick={startAddingRoom}>
+              <Plus className="h-4 w-4" />
+              {t('addFirstRoom')}
+            </Button>
+          }
+        />
       ) : (
-        <div className="rounded-lg border bg-card p-4">
-          {locations.map((location) => renderLocation(location))}
-        </div>
+        <Card>
+          <CardContent>{locations.map((location) => renderLocation(location))}</CardContent>
+        </Card>
       )}
 
       {/* Quick guide */}
-      {locations.length > 0 && (
+      {!isLoading && locations.length > 0 && (
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <div className="bg-blue-500 p-1 rounded">
-              <Home className="h-3 w-3 text-white" />
+            <div className="rounded bg-muted p-1">
+              <Home className="h-3 w-3 text-muted-foreground" />
             </div>
             <span>{t('room')}</span>
           </div>
           <span>→</span>
           <div className="flex items-center gap-2">
-            <div className="bg-green-500 p-1 rounded">
-              <Armchair className="h-3 w-3 text-white" />
+            <div className="rounded bg-muted p-1">
+              <Armchair className="h-3 w-3 text-muted-foreground" />
             </div>
             <span>{t('furniture')}</span>
           </div>
           <span>→</span>
           <div className="flex items-center gap-2">
-            <div className="bg-orange-500 p-1 rounded">
-              <BookOpen className="h-3 w-3 text-white" />
+            <div className="rounded bg-muted p-1">
+              <BookOpen className="h-3 w-3 text-muted-foreground" />
             </div>
             <span>{t('shelf')}</span>
           </div>
