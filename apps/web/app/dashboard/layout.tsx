@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Home, MapPin, BookMarked, Library, Settings, LogOut } from 'lucide-react'
+import { BookOpen, Building2, Home, MapPin, BookMarked, Library, Settings, LogOut, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -15,6 +15,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = [
     { href: '/dashboard', label: t('home'), icon: Home },
     { href: '/dashboard/books', label: t('books'), icon: BookOpen },
+    { href: '/dashboard/authors', label: t('authors'), icon: User },
+    { href: '/dashboard/publishers', label: t('publishers'), icon: Building2 },
     { href: '/dashboard/collections', label: t('collections'), icon: Library },
     { href: '/dashboard/locations', label: t('locations'), icon: MapPin },
     { href: '/dashboard/reading', label: t('reading'), icon: BookMarked },
