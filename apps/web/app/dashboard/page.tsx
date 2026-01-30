@@ -4,14 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import {
-  BookMarked,
-  BookOpen,
-  Building2,
-  MapPin,
-  TrendingUp,
-  User,
-} from 'lucide-react'
+import { BookMarked, BookOpen, Building2, MapPin, TrendingUp, User } from 'lucide-react'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { StatCard, StatCardSkeleton } from '@/components/dashboard/stat-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -89,11 +82,36 @@ export default function DashboardPage() {
 
   const statCards = [
     { label: td('totalBooks'), value: stats.totalBooks, icon: BookOpen, href: '/dashboard/books' },
-    { label: td('locations'), value: stats.totalLocations, icon: MapPin, href: '/dashboard/locations' },
-    { label: td('totalAuthors'), value: stats.totalAuthors, icon: User, href: '/dashboard/authors' },
-    { label: td('totalPublishers'), value: stats.totalPublishers, icon: Building2, href: '/dashboard/publishers' },
-    { label: td('currentlyReading'), value: stats.currentlyReading, icon: BookMarked, href: '/dashboard/reading' },
-    { label: td('booksRead'), value: stats.booksRead, icon: TrendingUp, href: '/dashboard/reading' },
+    {
+      label: td('locations'),
+      value: stats.totalLocations,
+      icon: MapPin,
+      href: '/dashboard/locations',
+    },
+    {
+      label: td('totalAuthors'),
+      value: stats.totalAuthors,
+      icon: User,
+      href: '/dashboard/authors',
+    },
+    {
+      label: td('totalPublishers'),
+      value: stats.totalPublishers,
+      icon: Building2,
+      href: '/dashboard/publishers',
+    },
+    {
+      label: td('currentlyReading'),
+      value: stats.currentlyReading,
+      icon: BookMarked,
+      href: '/dashboard/reading',
+    },
+    {
+      label: td('booksRead'),
+      value: stats.booksRead,
+      icon: TrendingUp,
+      href: '/dashboard/reading',
+    },
   ]
 
   return (
@@ -173,8 +191,7 @@ export default function DashboardPage() {
                           <Progress value={progress} className="h-1.5" />
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {item.userBook.currentPage} / {item.book.pageCount || '?'}{' '}
-                          {tc('pages')}
+                          {item.userBook.currentPage} / {item.book.pageCount || '?'} {tc('pages')}
                         </p>
                       </div>
                     </Link>

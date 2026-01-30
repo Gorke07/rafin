@@ -116,7 +116,9 @@ export default function BooksPage() {
     <div className="space-y-6">
       <PageHeader
         title={t('title')}
-        description={!isLoading && books.length > 0 ? t('bookCount', { count: books.length }) : undefined}
+        description={
+          !isLoading && books.length > 0 ? t('bookCount', { count: books.length }) : undefined
+        }
       >
         <Button asChild>
           <Link href="/dashboard/books/new">

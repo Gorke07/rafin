@@ -354,7 +354,11 @@ export default function LocationsPage() {
         <Card>
           <CardContent className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3" style={{ marginLeft: `${(i % 3) * 20}px` }}>
+              <div
+                key={i}
+                className="flex items-center gap-3"
+                style={{ marginLeft: `${(i % 3) * 20}px` }}
+              >
                 <Skeleton className="h-5 w-5" />
                 <Skeleton className="h-8 w-8 rounded" />
                 <Skeleton className="h-4 w-32" />

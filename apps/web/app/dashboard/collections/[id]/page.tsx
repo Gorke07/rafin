@@ -246,11 +246,7 @@ function CollectionDetailContent({ id }: { id: string }) {
 
       {/* Books Grid */}
       {books.length === 0 ? (
-        <EmptyState
-          icon={Book}
-          title={t('noBooksInCollection')}
-          description={t('addBooksHint')}
-        />
+        <EmptyState icon={Book} title={t('noBooksInCollection')} description={t('addBooksHint')} />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {books.map(({ book }) => {
@@ -264,11 +260,7 @@ function CollectionDetailContent({ id }: { id: string }) {
                     className="h-24 w-16 shrink-0 overflow-hidden rounded-md bg-muted"
                   >
                     {coverSrc ? (
-                      <img
-                        src={coverSrc}
-                        alt={book.title}
-                        className="h-full w-full object-cover"
-                      />
+                      <img src={coverSrc} alt={book.title} className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full items-center justify-center">
                         <ImageIcon className="h-6 w-6 text-muted-foreground/30" />

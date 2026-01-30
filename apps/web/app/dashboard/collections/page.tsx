@@ -190,18 +190,11 @@ function CollectionsContent() {
           ))}
         </div>
       ) : collections.length === 0 ? (
-        <EmptyState
-          icon={Library}
-          title={t('noCollections')}
-          description={t('organizeBooks')}
-        />
+        <EmptyState icon={Library} title={t('noCollections')} description={t('organizeBooks')} />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {collections.map((col) => (
-            <Card
-              key={col.id}
-              className="group relative transition-colors hover:bg-accent/50"
-            >
+            <Card key={col.id} className="group relative transition-colors hover:bg-accent/50">
               <CardContent>
                 <Link href={`/dashboard/collections/${col.id}`} className="block">
                   <div className="flex items-start gap-3">
@@ -241,9 +234,7 @@ function CollectionsContent() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/collections/${col.id}`}>
-                          {tc('edit')}
-                        </Link>
+                        <Link href={`/dashboard/collections/${col.id}`}>{tc('edit')}</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive"

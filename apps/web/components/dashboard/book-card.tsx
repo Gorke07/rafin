@@ -18,9 +18,7 @@ interface BookCardProps {
 
 export function BookCard({ book }: BookCardProps) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-  const coverSrc = book.coverPath
-    ? `${API_URL}${book.coverPath}`
-    : book.coverUrl || null
+  const coverSrc = book.coverPath ? `${API_URL}${book.coverPath}` : book.coverUrl || null
 
   return (
     <Link href={`/dashboard/books/${book.id}`}>
@@ -42,13 +40,9 @@ export function BookCard({ book }: BookCardProps) {
             )}
           </div>
           <div className="p-3">
-            <h3 className="line-clamp-2 text-sm font-medium leading-tight">
-              {book.title}
-            </h3>
+            <h3 className="line-clamp-2 text-sm font-medium leading-tight">{book.title}</h3>
             {book.authorNames && (
-              <p className="mt-1 truncate text-xs text-muted-foreground">
-                {book.authorNames}
-              </p>
+              <p className="mt-1 truncate text-xs text-muted-foreground">{book.authorNames}</p>
             )}
             {(book.publishedYear || book.pageCount) && (
               <p className="mt-1 text-xs text-muted-foreground">

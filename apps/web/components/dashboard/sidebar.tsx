@@ -6,17 +6,8 @@ import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import {
   BookMarked,
   BookOpen,
@@ -67,9 +58,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <SidebarContext.Provider
-      value={{ isCollapsed, toggleCollapse, isMobileOpen, setMobileOpen }}
-    >
+    <SidebarContext.Provider value={{ isCollapsed, toggleCollapse, isMobileOpen, setMobileOpen }}>
       {children}
     </SidebarContext.Provider>
   )
@@ -91,8 +80,7 @@ function useNavItems() {
 
 function useIsActive() {
   const pathname = usePathname()
-  return (href: string) =>
-    href === '/dashboard' ? pathname === href : pathname.startsWith(href)
+  return (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
 }
 
 function useLogout() {
@@ -248,9 +236,7 @@ export function MobileSidebar() {
     <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
       <SheetContent side="left" className="w-64 p-0">
         <SheetHeader className="border-b px-4">
-          <SheetTitle className="text-left text-xl font-bold">
-            Rafin
-          </SheetTitle>
+          <SheetTitle className="text-left text-xl font-bold">Rafin</SheetTitle>
         </SheetHeader>
 
         <nav className="flex-1 space-y-1 p-2">

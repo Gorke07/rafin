@@ -80,10 +80,7 @@ export default function ReadingPage() {
     <div className="space-y-6">
       <PageHeader title={t('title')} />
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => setActiveTab(v as ReadingStatus)}
-      >
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ReadingStatus)}>
         <TabsList variant="line">
           <TabsTrigger value="reading">
             <BookOpen className="h-4 w-4" />
@@ -130,10 +127,7 @@ export default function ReadingPage() {
               {userBooks.map((item) => {
                 const src = coverSrc(item.book)
                 return (
-                  <Link
-                    key={item.book.id}
-                    href={`/dashboard/books/${item.book.id}`}
-                  >
+                  <Link key={item.book.id} href={`/dashboard/books/${item.book.id}`}>
                     <Card className="h-full transition-colors hover:bg-accent/50">
                       <CardContent className="flex gap-4">
                         <div className="h-24 w-16 shrink-0 overflow-hidden rounded bg-muted">
@@ -152,9 +146,7 @@ export default function ReadingPage() {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="line-clamp-2 text-sm font-medium">
-                            {item.book.title}
-                          </h3>
+                          <h3 className="line-clamp-2 text-sm font-medium">{item.book.title}</h3>
 
                           {/* Reading tab: progress bar */}
                           {activeTab === 'reading' && (

@@ -4,16 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {
-  ArrowLeft,
-  Building2,
-  Edit2,
-  ExternalLink,
-  Loader2,
-  Save,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { ArrowLeft, Building2, Edit2, ExternalLink, Loader2, Save, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -192,9 +183,7 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
                   <Label>{t('website')}</Label>
                   <Input
                     value={editForm.website}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({ ...prev, website: e.target.value }))
-                    }
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, website: e.target.value }))}
                     placeholder="https://..."
                   />
                 </div>

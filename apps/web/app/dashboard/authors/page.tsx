@@ -87,7 +87,9 @@ export default function AuthorsPage() {
     <div className="space-y-6">
       <PageHeader
         title={t('title')}
-        description={!isLoading && authors.length > 0 ? t('authorCount', { count: authors.length }) : undefined}
+        description={
+          !isLoading && authors.length > 0 ? t('authorCount', { count: authors.length }) : undefined
+        }
       >
         <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}

@@ -32,27 +32,25 @@ export function ReadingProgress({ bookId, totalPages, userBook, onUpdate }: Read
   const [currentPage, setCurrentPage] = useState(userBook?.currentPage || 0)
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const statusConfig: Record<
-    ReadingStatus,
-    { label: string; icon: typeof Clock; color: string }
-  > = {
-    tbr: { label: t('tbr'), icon: Clock, color: 'bg-blue-100 text-blue-700 border-blue-200' },
-    reading: {
-      label: t('reading'),
-      icon: BookOpen,
-      color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    },
-    completed: {
-      label: t('completed'),
-      icon: CheckCircle,
-      color: 'bg-green-100 text-green-700 border-green-200',
-    },
-    dnf: {
-      label: t('dnf'),
-      icon: XCircle,
-      color: 'bg-red-100 text-red-700 border-red-200',
-    },
-  }
+  const statusConfig: Record<ReadingStatus, { label: string; icon: typeof Clock; color: string }> =
+    {
+      tbr: { label: t('tbr'), icon: Clock, color: 'bg-blue-100 text-blue-700 border-blue-200' },
+      reading: {
+        label: t('reading'),
+        icon: BookOpen,
+        color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      },
+      completed: {
+        label: t('completed'),
+        icon: CheckCircle,
+        color: 'bg-green-100 text-green-700 border-green-200',
+      },
+      dnf: {
+        label: t('dnf'),
+        icon: XCircle,
+        color: 'bg-red-100 text-red-700 border-red-200',
+      },
+    }
 
   const progressPercent =
     totalPages && totalPages > 0 ? Math.min(Math.round((currentPage / totalPages) * 100), 100) : 0
@@ -120,28 +118,25 @@ export function ReadingProgress({ bookId, totalPages, userBook, onUpdate }: Read
 
         {/* Status buttons */}
         <div className="grid grid-cols-2 gap-2">
-          {(Object.entries(statusConfig) as [ReadingStatus, (typeof statusConfig)[ReadingStatus]][]).map(
-            ([key, config]) => {
-              const Icon = config.icon
-              return (
-                <Button
-                  key={key}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleStatusChange(key)}
-                  disabled={isUpdating}
-                  className={cn(
-                    'justify-start gap-2',
-                    status === key && config.color,
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {config.label}
-                </Button>
-              )
-            },
-          )}
+          {(
+            Object.entries(statusConfig) as [ReadingStatus, (typeof statusConfig)[ReadingStatus]][]
+          ).map(([key, config]) => {
+            const Icon = config.icon
+            return (
+              <Button
+                key={key}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleStatusChange(key)}
+                disabled={isUpdating}
+                className={cn('justify-start gap-2', status === key && config.color)}
+              >
+                <Icon className="h-4 w-4" />
+                {config.label}
+              </Button>
+            )
+          })}
         </div>
 
         {/* Progress bar and page counter */}

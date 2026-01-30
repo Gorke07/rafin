@@ -195,9 +195,7 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
                   <Label>{t('photoUrl')}</Label>
                   <Input
                     value={editForm.photoUrl}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({ ...prev, photoUrl: e.target.value }))
-                    }
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, photoUrl: e.target.value }))}
                   />
                 </div>
                 <div className="flex gap-2">
