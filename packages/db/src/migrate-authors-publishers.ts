@@ -3,14 +3,18 @@ import { db } from './client'
 import { books } from './schema/books'
 import { authors, bookAuthors } from './schema/authors'
 import { publishers, bookPublishers } from './schema/publishers'
-import { isNull, eq } from 'drizzle-orm'
+import { isNull, eq, sql } from 'drizzle-orm'
 
 async function migrate() {
   console.log('Starting authors/publishers migration...')
 
-  // 1. Fetch all non-deleted books
+  // 1. Fetch all non-deleted books (use raw SQL for removed columns)
   const allBooks = await db
-    .select({ id: books.id, author: books.author, publisher: books.publisher })
+    .select({
+      id: books.id,
+      author: sql<string>`"author"`,
+      publisher: sql<string>`"publisher"`,
+    })
     .from(books)
     .where(isNull(books.deletedAt))
 
@@ -23,7 +27,7 @@ async function migrate() {
       // Split by comma or & for multi-author books
       const names = book.author
         .split(/[,&]/)
-        .map((n) => n.trim())
+        .map((n: string) => n.trim())
         .filter(Boolean)
       for (const name of names) {
         authorNames.add(name)
@@ -71,7 +75,7 @@ async function migrate() {
     if (book.author) {
       const names = book.author
         .split(/[,&]/)
-        .map((n) => n.trim())
+        .map((n: string) => n.trim())
         .filter(Boolean)
       for (let i = 0; i < names.length; i++) {
         const authorId = authorMap.get(names[i])

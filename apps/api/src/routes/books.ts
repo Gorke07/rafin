@@ -1,11 +1,15 @@
 import {
+  authors,
   bindingTypes,
+  bookAuthors,
   bookCategories,
   bookCollections,
+  bookPublishers,
   books,
   categories,
   collections,
   db,
+  publishers,
 } from '@rafin/db'
 import { and, desc, eq, isNull, like, or } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
@@ -25,11 +29,7 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
       if (search) {
         whereClause = and(
           isNull(books.deletedAt),
-          or(
-            like(books.title, `%${search}%`),
-            like(books.author, `%${search}%`),
-            like(books.isbn, `%${search}%`),
-          ),
+          or(like(books.title, `%${search}%`), like(books.isbn, `%${search}%`)),
         )!
       }
 
@@ -41,7 +41,24 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         .limit(Number(limit))
         .offset(Number(offset))
 
-      return { books: result }
+      // Attach authors to each book
+      const booksWithAuthors = await Promise.all(
+        result.map(async (book) => {
+          const bookAuths = await db
+            .select({ name: authors.name })
+            .from(bookAuthors)
+            .innerJoin(authors, eq(bookAuthors.authorId, authors.id))
+            .where(eq(bookAuthors.bookId, book.id))
+            .orderBy(bookAuthors.order)
+
+          return {
+            ...book,
+            authorNames: bookAuths.map((a) => a.name).join(', '),
+          }
+        }),
+      )
+
+      return { books: booksWithAuthors }
     },
     {
       query: t.Object({
@@ -80,9 +97,26 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         .innerJoin(collections, eq(bookCollections.collectionId, collections.id))
         .where(eq(bookCollections.bookId, Number(params.id)))
 
+      // Get book authors
+      const bookAuths = await db
+        .select({ author: authors, order: bookAuthors.order })
+        .from(bookAuthors)
+        .innerJoin(authors, eq(bookAuthors.authorId, authors.id))
+        .where(eq(bookAuthors.bookId, Number(params.id)))
+        .orderBy(bookAuthors.order)
+
+      // Get book publishers
+      const bookPubs = await db
+        .select({ publisher: publishers })
+        .from(bookPublishers)
+        .innerJoin(publishers, eq(bookPublishers.publisherId, publishers.id))
+        .where(eq(bookPublishers.bookId, Number(params.id)))
+
       return {
         book: {
           ...result[0],
+          authors: bookAuths.map((ba) => ba.author),
+          publishers: bookPubs.map((bp) => bp.publisher),
           categories: bookCats.map((bc) => bc.category),
           collections: bookColls.map((bc) => bc.collection),
         },
@@ -118,9 +152,7 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         .insert(books)
         .values({
           title: body.title,
-          author: body.author,
           isbn: body.isbn || null,
-          publisher: body.publisher || null,
           publishedYear: body.publishedYear || null,
           pageCount: body.pageCount || null,
           translator: body.translator || null,
@@ -160,14 +192,35 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         )
       }
 
+      // Add authors
+      if (body.authorIds && body.authorIds.length > 0) {
+        await db.insert(bookAuthors).values(
+          body.authorIds.map((authorId, index) => ({
+            bookId,
+            authorId,
+            order: index,
+          })),
+        )
+      }
+
+      // Add publishers
+      if (body.publisherIds && body.publisherIds.length > 0) {
+        await db.insert(bookPublishers).values(
+          body.publisherIds.map((publisherId) => ({
+            bookId,
+            publisherId,
+          })),
+        )
+      }
+
       return { book: result[0] }
     },
     {
       body: t.Object({
         title: t.String({ minLength: 1 }),
-        author: t.String({ minLength: 1 }),
+        authorIds: t.Array(t.Number()),
+        publisherIds: t.Optional(t.Array(t.Number())),
         isbn: t.Optional(t.String()),
-        publisher: t.Optional(t.String()),
         publishedYear: t.Optional(t.Number()),
         pageCount: t.Optional(t.Number()),
         translator: t.Optional(t.String()),
@@ -204,6 +257,8 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
       const {
         categoryIds,
         collectionIds,
+        authorIds,
+        publisherIds,
         bindingType: bindingTypeInput,
         coverUrl: coverUrlInput,
         removeCover,
@@ -281,6 +336,33 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         }
       }
 
+      // Update authors if provided
+      if (authorIds !== undefined) {
+        await db.delete(bookAuthors).where(eq(bookAuthors.bookId, Number(params.id)))
+        if (authorIds.length > 0) {
+          await db.insert(bookAuthors).values(
+            authorIds.map((authorId, index) => ({
+              bookId: Number(params.id),
+              authorId,
+              order: index,
+            })),
+          )
+        }
+      }
+
+      // Update publishers if provided
+      if (publisherIds !== undefined) {
+        await db.delete(bookPublishers).where(eq(bookPublishers.bookId, Number(params.id)))
+        if (publisherIds.length > 0) {
+          await db.insert(bookPublishers).values(
+            publisherIds.map((publisherId) => ({
+              bookId: Number(params.id),
+              publisherId,
+            })),
+          )
+        }
+      }
+
       return { book: result[0] }
     },
     {
@@ -289,9 +371,9 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
       }),
       body: t.Object({
         title: t.Optional(t.String()),
-        author: t.Optional(t.String()),
+        authorIds: t.Optional(t.Array(t.Number())),
+        publisherIds: t.Optional(t.Array(t.Number())),
         isbn: t.Optional(t.String()),
-        publisher: t.Optional(t.String()),
         publishedYear: t.Optional(t.Number()),
         pageCount: t.Optional(t.Number()),
         translator: t.Optional(t.String()),
