@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import Image from 'next/image'
 import { BookMarked, BookOpen, Building2, MapPin, TrendingUp, User } from 'lucide-react'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { StatCard, StatCardSkeleton } from '@/components/dashboard/stat-card'
@@ -172,11 +171,9 @@ export default function DashboardPage() {
                     >
                       <div className="h-16 w-12 shrink-0 overflow-hidden rounded bg-muted">
                         {src ? (
-                          <Image
+                          <img
                             src={src}
                             alt={item.book.title}
-                            width={48}
-                            height={64}
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -231,11 +228,9 @@ export default function DashboardPage() {
                     >
                       <div className="h-16 w-12 shrink-0 overflow-hidden rounded bg-muted">
                         {src ? (
-                          <Image
+                          <img
                             src={src}
                             alt={book.title}
-                            width={48}
-                            height={64}
                             className="h-full w-full object-cover"
                           />
                         ) : (

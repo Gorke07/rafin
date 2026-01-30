@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import Image from 'next/image'
 import { BookMarked, BookOpen, CheckCircle, XCircle } from 'lucide-react'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { EmptyState } from '@/components/dashboard/empty-state'
@@ -132,11 +131,9 @@ export default function ReadingPage() {
                       <CardContent className="flex gap-4">
                         <div className="h-24 w-16 shrink-0 overflow-hidden rounded bg-muted">
                           {src ? (
-                            <Image
+                            <img
                               src={src}
                               alt={item.book.title}
-                              width={64}
-                              height={96}
                               className="h-full w-full object-cover"
                             />
                           ) : (

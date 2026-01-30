@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -26,11 +25,9 @@ export function BookCard({ book }: BookCardProps) {
         <CardContent className="p-0">
           <div className="aspect-[3/4] w-full overflow-hidden bg-muted">
             {coverSrc ? (
-              <Image
+              <img
                 src={coverSrc}
                 alt={book.title}
-                width={200}
-                height={267}
                 className="h-full w-full object-cover transition-transform group-hover:scale-105"
               />
             ) : (
