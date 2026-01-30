@@ -1,10 +1,20 @@
 'use client'
 
+import { cn } from '@/lib/utils'
+import {
+  BookMarked,
+  BookOpen,
+  Building2,
+  Home,
+  Library,
+  LogOut,
+  MapPin,
+  Settings,
+  User,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Building2, Home, MapPin, BookMarked, Library, Settings, LogOut, User } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -45,9 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               href={href}
               className={cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 transition-colors',
-                isActive(href)
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent',
+                isActive(href) ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
               )}
             >
               <Icon className="h-5 w-5" />

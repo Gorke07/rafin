@@ -1,6 +1,6 @@
-import { Elysia, t } from 'elysia'
-import { db, authors, books, locations, publishers, userBooks } from '@rafin/db'
-import { count, eq, isNull, sum } from 'drizzle-orm'
+import { authors, books, db, locations, publishers, userBooks } from '@rafin/db'
+import { count, eq, isNull } from 'drizzle-orm'
+import { Elysia } from 'elysia'
 
 export const statsRoutes = new Elysia({ prefix: '/api/stats' })
   .get('/overview', async () => {

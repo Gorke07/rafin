@@ -1,6 +1,6 @@
+import { authors, bookAuthors, books, db } from '@rafin/db'
+import { and, count, desc, eq, isNull, like } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
-import { db, authors, bookAuthors, books } from '@rafin/db'
-import { eq, desc, like, isNull, and, count } from 'drizzle-orm'
 
 export const authorRoutes = new Elysia({ prefix: '/api/authors' })
   // List authors (with search)
@@ -9,16 +9,13 @@ export const authorRoutes = new Elysia({ prefix: '/api/authors' })
     async ({ query }) => {
       const { q } = query
 
-      let result
-      if (q) {
-        result = await db
-          .select()
-          .from(authors)
-          .where(like(authors.name, `%${q}%`))
-          .orderBy(authors.name)
-      } else {
-        result = await db.select().from(authors).orderBy(authors.name)
-      }
+      const result = q
+        ? await db
+            .select()
+            .from(authors)
+            .where(like(authors.name, `%${q}%`))
+            .orderBy(authors.name)
+        : await db.select().from(authors).orderBy(authors.name)
 
       // Get book counts
       const authorsWithCounts = await Promise.all(
@@ -79,11 +76,7 @@ export const authorRoutes = new Elysia({ prefix: '/api/authors' })
     '/',
     async ({ body }) => {
       // Check uniqueness
-      const existing = await db
-        .select()
-        .from(authors)
-        .where(eq(authors.name, body.name))
-        .limit(1)
+      const existing = await db.select().from(authors).where(eq(authors.name, body.name)).limit(1)
 
       if (existing.length > 0) {
         // Return existing instead of error (for combobox create-on-type)

@@ -1,6 +1,6 @@
+import { bookPublishers, books, db, publishers } from '@rafin/db'
+import { and, count, desc, eq, isNull, like } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
-import { db, publishers, bookPublishers, books } from '@rafin/db'
-import { eq, desc, like, isNull, and, count } from 'drizzle-orm'
 
 export const publisherRoutes = new Elysia({ prefix: '/api/publishers' })
   // List publishers (with search)
@@ -9,16 +9,13 @@ export const publisherRoutes = new Elysia({ prefix: '/api/publishers' })
     async ({ query }) => {
       const { q } = query
 
-      let result
-      if (q) {
-        result = await db
-          .select()
-          .from(publishers)
-          .where(like(publishers.name, `%${q}%`))
-          .orderBy(publishers.name)
-      } else {
-        result = await db.select().from(publishers).orderBy(publishers.name)
-      }
+      const result = q
+        ? await db
+            .select()
+            .from(publishers)
+            .where(like(publishers.name, `%${q}%`))
+            .orderBy(publishers.name)
+        : await db.select().from(publishers).orderBy(publishers.name)
 
       const publishersWithCounts = await Promise.all(
         result.map(async (publisher) => {

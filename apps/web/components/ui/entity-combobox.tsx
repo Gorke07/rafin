@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { X, Plus, GripVertical } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -51,10 +50,9 @@ export function EntityCombobox({
     const timer = setTimeout(async () => {
       setIsLoading(true)
       try {
-        const response = await fetch(
-          `${API_URL}${searchEndpoint}?q=${encodeURIComponent(query)}`,
-          { credentials: 'include' },
-        )
+        const response = await fetch(`${API_URL}${searchEndpoint}?q=${encodeURIComponent(query)}`, {
+          credentials: 'include',
+        })
         if (response.ok) {
           const data = await response.json()
           const entities: Entity[] = data[`${entityKey}s`] || []
@@ -126,13 +124,6 @@ export function EntityCombobox({
     onSelectionChange(newList)
   }
 
-  const handleMoveDown = (index: number) => {
-    if (index === selected.length - 1) return
-    const newList = [...selected]
-    ;[newList[index], newList[index + 1]] = [newList[index + 1], newList[index]]
-    onSelectionChange(newList)
-  }
-
   const showCreateOption =
     query.trim() &&
     !results.some((r) => r.name.toLowerCase() === query.trim().toLowerCase()) &&
@@ -192,9 +183,7 @@ export function EntityCombobox({
             ref={dropdownRef}
             className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-1 shadow-md"
           >
-            {isLoading && (
-              <div className="px-3 py-2 text-sm text-muted-foreground">...</div>
-            )}
+            {isLoading && <div className="px-3 py-2 text-sm text-muted-foreground">...</div>}
 
             {!isLoading && results.length === 0 && !showCreateOption && query.trim() && (
               <div className="px-3 py-2 text-sm text-muted-foreground">{noResultsLabel}</div>
