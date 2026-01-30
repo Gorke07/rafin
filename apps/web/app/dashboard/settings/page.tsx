@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -10,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PageHeader } from '@/components/dashboard/page-header'
 import { useToast } from '@/hooks/use-toast'
 import { Download, Globe, Loader2, Lock, Monitor, Moon, Palette, Sun, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -30,16 +32,18 @@ function SettingsCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-lg border bg-card p-6">
-      <div className="flex items-center gap-3 mb-1">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
-          <Icon className="h-4 w-4 text-primary" />
+    <Card>
+      <CardContent>
+        <div className="mb-1 flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
+            <Icon className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <h2 className="text-lg font-semibold">{title}</h2>
         </div>
-        <h2 className="text-lg font-semibold">{title}</h2>
-      </div>
-      {description && <p className="text-sm text-muted-foreground mb-4 ml-12">{description}</p>}
-      <div className="mt-4">{children}</div>
-    </div>
+        {description && <p className="mb-4 ml-12 text-sm text-muted-foreground">{description}</p>}
+        <div className="mt-4">{children}</div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -329,8 +333,8 @@ export default function SettingsPage() {
   const t = useTranslations('settings')
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <h1 className="text-3xl font-bold">{t('title')}</h1>
+    <div className="max-w-3xl space-y-6">
+      <PageHeader title={t('title')} />
 
       <SettingsCard icon={User} title={t('profile')}>
         <ProfileSection />
