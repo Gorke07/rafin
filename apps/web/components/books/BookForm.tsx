@@ -16,8 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { plainTextToHtml } from '@/lib/html-utils'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { CoverUpload } from './CoverUpload'
@@ -32,6 +33,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 interface BookFormData {
   title: string
+  originalTitle?: string
   authorIds?: number[]
   publisherIds?: number[]
   isbn?: string
@@ -58,6 +60,7 @@ interface Location {
   name: string
   type: string
   parentId?: number | null
+  children?: Location[]
 }
 
 interface Category {
@@ -83,6 +86,18 @@ const currencies = [
   { value: 'EUR', label: 'EUR (€)' },
 ]
 
+function buildLocationChain(locationId: number, flat: Location[]) {
+  const chain: { room?: number; furniture?: number; shelf?: number } = {}
+  let current = flat.find((l) => l.id === locationId)
+  while (current) {
+    if (current.type === 'room' || current.type === 'furniture' || current.type === 'shelf') {
+      chain[current.type] = current.id
+    }
+    current = current.parentId ? flat.find((l) => l.id === current!.parentId) : undefined
+  }
+  return chain
+}
+
 export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
   const router = useRouter()
   const { addToast } = useToast()
@@ -90,6 +105,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
   const tc = useTranslations('common')
   const tAuth = useTranslations('authors')
   const tPub = useTranslations('publishers')
+  const tLoc = useTranslations('locations')
 
   const bindingTypes = [
     { value: 'paperback', label: t('paperback') },
@@ -99,6 +115,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
 
   const [formData, setFormData] = useState<BookFormData>({
     title: '',
+    originalTitle: '',
     isbn: '',
     translator: '',
     description: '',
@@ -110,7 +127,11 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
   const [selectedAuthors, setSelectedAuthors] = useState<Entity[]>([])
   const [selectedPublishers, setSelectedPublishers] = useState<Entity[]>([])
 
-  const [locations, setLocations] = useState<Location[]>([])
+  const [locationTree, setLocationTree] = useState<Location[]>([])
+  const [allLocations, setAllLocations] = useState<Location[]>([])
+  const [selectedRoom, setSelectedRoom] = useState<string>('')
+  const [selectedFurniture, setSelectedFurniture] = useState<string>('')
+  const [selectedShelf, setSelectedShelf] = useState<string>('')
   const [categories, setCategories] = useState<Category[]>([])
   const [collections, setCollections] = useState<Collection[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -139,10 +160,13 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
   }, [mode, initialData?.id])
 
   useEffect(() => {
-    // Fetch locations
+    // Fetch locations (tree + flat)
     fetch(`${API_URL}/api/locations`, { credentials: 'include' })
       .then((res) => res.json())
-      .then((data) => setLocations(data.locations || []))
+      .then((data) => {
+        setLocationTree(data.locations || [])
+        setAllLocations(data.flat || [])
+      })
       .catch(console.error)
 
     // Fetch categories
@@ -157,6 +181,16 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
       .then((data) => setCollections(data.collections || []))
       .catch(console.error)
   }, [])
+
+  // Populate cascading selects when editing a book with an existing locationId
+  useEffect(() => {
+    if (formData.locationId && allLocations.length > 0) {
+      const chain = buildLocationChain(formData.locationId, allLocations)
+      if (chain.room) setSelectedRoom(String(chain.room))
+      if (chain.furniture) setSelectedFurniture(String(chain.furniture))
+      if (chain.shelf) setSelectedShelf(String(chain.shelf))
+    }
+  }, [formData.locationId, allLocations])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -178,6 +212,33 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
     }
+  }
+
+  // Cascading location lists
+  const rooms = locationTree
+  const furnitureList = selectedRoom
+    ? rooms.find((r) => r.id === Number(selectedRoom))?.children || []
+    : []
+  const shelves = selectedFurniture
+    ? furnitureList.find((f) => f.id === Number(selectedFurniture))?.children || []
+    : []
+
+  const handleRoomChange = (value: string) => {
+    setSelectedRoom(value)
+    setSelectedFurniture('')
+    setSelectedShelf('')
+    setFormData((prev) => ({ ...prev, locationId: value ? Number(value) : undefined }))
+  }
+
+  const handleFurnitureChange = (value: string) => {
+    setSelectedFurniture(value)
+    setSelectedShelf('')
+    setFormData((prev) => ({ ...prev, locationId: value ? Number(value) : undefined }))
+  }
+
+  const handleShelfChange = (value: string) => {
+    setSelectedShelf(value)
+    setFormData((prev) => ({ ...prev, locationId: value ? Number(value) : undefined }))
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -460,6 +521,16 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
                   />
                 </div>
               </div>
+
+              <div>
+                <Label htmlFor="originalTitle">{t('originalTitle')}</Label>
+                <Input
+                  id="originalTitle"
+                  name="originalTitle"
+                  value={formData.originalTitle || ''}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
           </div>
         </TabsContent>
@@ -594,21 +665,70 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
         <TabsContent value="organization" className="space-y-4 pt-4">
           <div>
             <Label>{t('location')}</Label>
-            <Select
-              value={formData.locationId ? String(formData.locationId) : ''}
-              onValueChange={(v) => handleSelectChange('locationId', v)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('selectBinding')} />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((loc) => (
-                  <SelectItem key={loc.id} value={String(loc.id)}>
-                    {loc.name} ({loc.type})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {rooms.length > 0 ? (
+              <div className="mt-2 grid gap-4 md:grid-cols-3">
+                <div>
+                  <Label>{tLoc('room')}</Label>
+                  <Select value={selectedRoom} onValueChange={handleRoomChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t('selectRoom')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rooms.map((room) => (
+                        <SelectItem key={room.id} value={String(room.id)}>
+                          {room.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {furnitureList.length > 0 && (
+                  <div>
+                    <Label>{tLoc('furniture')}</Label>
+                    <Select value={selectedFurniture} onValueChange={handleFurnitureChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t('selectFurniture')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {furnitureList.map((f) => (
+                          <SelectItem key={f.id} value={String(f.id)}>
+                            {f.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {shelves.length > 0 && (
+                  <div>
+                    <Label>{tLoc('shelf')}</Label>
+                    <Select value={selectedShelf} onValueChange={handleShelfChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t('selectShelf')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {shelves.map((s) => (
+                          <SelectItem key={s.id} value={String(s.id)}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">{tLoc('noLocations')}</p>
+                <Link href="/dashboard/locations">
+                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
           <div>
@@ -640,6 +760,11 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
               {categories.length === 0 && (
                 <p className="text-sm text-muted-foreground">{t('noCategories')}</p>
               )}
+              <Link href="/dashboard/categories">
+                <Button type="button" variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -679,6 +804,11 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
               {collections.length === 0 && (
                 <p className="text-sm text-muted-foreground">{t('noCollections')}</p>
               )}
+              <Link href="/dashboard/collections">
+                <Button type="button" variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </div>
         </TabsContent>
