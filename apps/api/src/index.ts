@@ -8,6 +8,7 @@ import { bookNotesRoutes } from './routes/book-notes'
 import { bookRoutes } from './routes/books'
 import { authorRoutes } from './routes/authors'
 import { categoryRoutes } from './routes/categories'
+import { publisherRoutes } from './routes/publishers'
 import { collectionRoutes } from './routes/collections'
 import { locationRoutes } from './routes/locations'
 import { setupRoutes } from './routes/setup'
@@ -41,6 +42,7 @@ const app = new Elysia()
   .use(collectionRoutes)
   .use(categoryRoutes)
   .use(authorRoutes)
+  .use(publisherRoutes)
   .use(uploadRoutes)
   .use(userSettingsRoutes)
   .use(authMiddleware)
