@@ -8,5 +8,5 @@ export const authMiddleware = new Elysia({ name: 'auth-middleware' }).derive(
       user: session?.user ?? null,
       session: session?.session ?? null,
     }
-  }
+  },
 )

@@ -4,7 +4,11 @@ export const bindingTypes = ['paperback', 'hardcover', 'ebook'] as const
 export const currencies = ['TRY', 'USD', 'EUR'] as const
 
 export const createBookSchema = z.object({
-  isbn: z.string().regex(/^(97[89])?\d{9}[\dXx]$/).optional().or(z.literal('')),
+  isbn: z
+    .string()
+    .regex(/^(97[89])?\d{9}[\dXx]$/)
+    .optional()
+    .or(z.literal('')),
   title: z.string().min(1, 'Title is required'),
   author: z.string().min(1, 'Author is required'),
   publisher: z.string().optional(),
@@ -17,7 +21,7 @@ export const createBookSchema = z.object({
   store: z.string().optional(),
   copyNote: z.string().optional(),
   locationId: z.number().int().positive().optional(),
-  description: z.string().max(5000).optional(),
+  description: z.string().max(20000).optional(),
   language: z.string().optional(),
   bindingType: z.enum(bindingTypes).optional(),
   coverUrl: z.string().url().optional(),
@@ -37,17 +41,24 @@ export const updateReadingStatusSchema = z.object({
 export const collectionSchema = z.object({
   name: z.string().min(1, 'Collection name is required'),
   description: z.string().optional(),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
   icon: z.string().optional(),
   isSmart: z.boolean().default(false),
-  smartFilters: z.object({
-    rules: z.array(z.object({
-      field: z.string(),
-      operator: z.string(),
-      value: z.any(),
-    })),
-    logic: z.enum(['and', 'or']).default('and'),
-  }).optional(),
+  smartFilters: z
+    .object({
+      rules: z.array(
+        z.object({
+          field: z.string(),
+          operator: z.string(),
+          value: z.any(),
+        }),
+      ),
+      logic: z.enum(['and', 'or']).default('and'),
+    })
+    .optional(),
 })
 
 export const bookNoteSchema = z.object({

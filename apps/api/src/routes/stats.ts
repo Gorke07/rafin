@@ -12,9 +12,7 @@ export const statsRoutes = new Elysia({ prefix: '/api/stats' })
     const totalBooks = booksResult[0]?.count ?? 0
 
     // Total locations
-    const locationsResult = await db
-      .select({ count: count() })
-      .from(locations)
+    const locationsResult = await db.select({ count: count() }).from(locations)
     const totalLocations = locationsResult[0]?.count ?? 0
 
     // Currently reading

@@ -1,9 +1,9 @@
-import type { BookLookupResult, BookSource, BookScraper } from './types'
-import { kitapyurduScraper } from './kitapyurdu'
 import { bkmkitapScraper } from './bkmkitap'
-import { idefixScraper } from './idefix'
 import { googleBooksScraper } from './google-books'
+import { idefixScraper } from './idefix'
+import { kitapyurduScraper } from './kitapyurdu'
 import { openLibraryScraper } from './openlibrary'
+import type { BookLookupResult, BookScraper, BookSource } from './types'
 
 export type { BookLookupResult, BookSource }
 
@@ -44,7 +44,7 @@ function setCache(isbn: string, source: BookSource, result: BookLookupResult | n
 
 export async function lookupBook(
   isbn: string,
-  source: BookSource
+  source: BookSource,
 ): Promise<BookLookupResult | null> {
   // Normalize ISBN (remove hyphens and spaces)
   const normalizedIsbn = isbn.replace(/[-\s]/g, '')
@@ -69,14 +69,15 @@ export async function lookupBook(
 }
 
 export async function lookupBookFromAllSources(
-  isbn: string
+  isbn: string,
 ): Promise<{ source: BookSource; result: BookLookupResult } | null> {
   const normalizedIsbn = isbn.replace(/[-\s]/g, '')
 
   // Try sources in order of preference (Turkish first for Turkish ISBNs)
-  const sourceOrder: BookSource[] = normalizedIsbn.startsWith('975') || normalizedIsbn.startsWith('978975')
-    ? ['kitapyurdu', 'bkmkitap', 'idefix', 'google', 'openlibrary']
-    : ['google', 'openlibrary', 'kitapyurdu', 'bkmkitap', 'idefix']
+  const sourceOrder: BookSource[] =
+    normalizedIsbn.startsWith('975') || normalizedIsbn.startsWith('978975')
+      ? ['kitapyurdu', 'bkmkitap', 'idefix', 'google', 'openlibrary']
+      : ['google', 'openlibrary', 'kitapyurdu', 'bkmkitap', 'idefix']
 
   for (const source of sourceOrder) {
     const result = await lookupBook(normalizedIsbn, source)
@@ -90,7 +91,7 @@ export async function lookupBookFromAllSources(
 
 export async function searchBooksByTitle(
   query: string,
-  source?: BookSource
+  source?: BookSource,
 ): Promise<BookLookupResult[]> {
   const sourcesToSearch: BookSource[] = source
     ? [source]
@@ -116,4 +117,25 @@ export async function searchBooksByTitle(
   })
 }
 
-export const availableSources: BookSource[] = ['kitapyurdu', 'bkmkitap', 'idefix', 'google', 'openlibrary']
+export async function lookupBookByUrl(url: string): Promise<BookLookupResult | null> {
+  // Determine which scraper to use based on the URL
+  let source: BookSource | undefined
+  if (url.includes('kitapyurdu.com')) source = 'kitapyurdu'
+  else if (url.includes('bkmkitap.com')) source = 'bkmkitap'
+  else if (url.includes('idefix.com')) source = 'idefix'
+
+  if (!source) return null
+
+  const scraper = scrapers[source]
+  if (!scraper.lookupByUrl) return null
+
+  return scraper.lookupByUrl(url)
+}
+
+export const availableSources: BookSource[] = [
+  'kitapyurdu',
+  'bkmkitap',
+  'idefix',
+  'google',
+  'openlibrary',
+]

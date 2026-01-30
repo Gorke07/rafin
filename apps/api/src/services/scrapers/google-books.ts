@@ -1,3 +1,4 @@
+import { sanitizeDescription } from '../sanitize-html'
 import type { BookLookupResult, BookScraper } from './types'
 
 interface GoogleBooksResponse {
@@ -23,8 +24,8 @@ interface GoogleBooksResponse {
 
 function parseGoogleBook(item: GoogleBooksResponse['items'][0]): BookLookupResult {
   const book = item.volumeInfo
-  const isbn13 = book.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier
-  const isbn10 = book.industryIdentifiers?.find(id => id.type === 'ISBN_10')?.identifier
+  const isbn13 = book.industryIdentifiers?.find((id) => id.type === 'ISBN_13')?.identifier
+  const isbn10 = book.industryIdentifiers?.find((id) => id.type === 'ISBN_10')?.identifier
 
   return {
     isbn: isbn13 || isbn10 || '',
@@ -32,10 +33,10 @@ function parseGoogleBook(item: GoogleBooksResponse['items'][0]): BookLookupResul
     author: book.authors?.join(', ') || '',
     publisher: book.publisher,
     publishedYear: book.publishedDate
-      ? parseInt(book.publishedDate.split('-')[0])
+      ? Number.parseInt(book.publishedDate.split('-')[0])
       : undefined,
     pageCount: book.pageCount,
-    description: book.description,
+    description: sanitizeDescription(book.description),
     language: book.language,
     coverUrl: book.imageLinks?.thumbnail?.replace('http:', 'https:'),
   }
@@ -46,15 +47,13 @@ export const googleBooksScraper: BookScraper = {
 
   async lookup(isbn: string): Promise<BookLookupResult | null> {
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`
-      )
+      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
 
       if (!response.ok) {
         return null
       }
 
-      const data = await response.json() as GoogleBooksResponse
+      const data = (await response.json()) as GoogleBooksResponse
 
       if (!data.items || data.items.length === 0) {
         return null
@@ -72,14 +71,14 @@ export const googleBooksScraper: BookScraper = {
   async searchByTitle(query: string): Promise<BookLookupResult[]> {
     try {
       const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(query)}&maxResults=10`
+        `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(query)}&maxResults=10`,
       )
 
       if (!response.ok) {
         return []
       }
 
-      const data = await response.json() as GoogleBooksResponse
+      const data = (await response.json()) as GoogleBooksResponse
 
       if (!data.items || data.items.length === 0) {
         return []

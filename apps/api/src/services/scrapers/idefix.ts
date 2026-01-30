@@ -1,9 +1,11 @@
 import * as cheerio from 'cheerio'
+import { sanitizeDescription } from '../sanitize-html'
 import type { BookLookupResult, BookScraper } from './types'
 
 const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
   'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
 }
 
@@ -62,11 +64,10 @@ function parseDescription(html: string): {
   const text = $.text()
 
   const pageMatch = text.match(/sayfa\s*sayı?s[ıi]\s*:?\s*(\d+)/i)
-  if (pageMatch) result.pageCount = parseInt(pageMatch[1])
+  if (pageMatch) result.pageCount = Number.parseInt(pageMatch[1])
 
-  const yearMatch = text.match(/bask[ıi]\s*y[ıi]l[ıi]\s*:?\s*(\d{4})/i)
-    || text.match(/(\d{4})/)
-  if (yearMatch) result.publishedYear = parseInt(yearMatch[1])
+  const yearMatch = text.match(/bask[ıi]\s*y[ıi]l[ıi]\s*:?\s*(\d{4})/i) || text.match(/(\d{4})/)
+  if (yearMatch) result.publishedYear = Number.parseInt(yearMatch[1])
 
   const langMatch = text.match(/dil[i]?\s*:?\s*([\wçğıöşüÇĞİÖŞÜ]+)/i)
   if (langMatch) result.language = langMatch[1]
@@ -149,7 +150,7 @@ export const idefixScraper: BookScraper = {
         publisher: detail.brandName || undefined,
         publishedYear: descInfo.publishedYear,
         pageCount: descInfo.pageCount,
-        description: detail.description ? cheerio.load(detail.description).text().trim() : undefined,
+        description: sanitizeDescription(detail.description),
         language,
         coverUrl,
         translator,
@@ -157,6 +158,47 @@ export const idefixScraper: BookScraper = {
       }
     } catch (error) {
       console.error('Idefix lookup error:', error)
+      return null
+    }
+  },
+
+  async lookupByUrl(url: string): Promise<BookLookupResult | null> {
+    try {
+      const detailResponse = await fetch(url, { headers: HEADERS })
+      if (!detailResponse.ok) return null
+
+      const detailHtml = await detailResponse.text()
+      const detailData = getNextData(detailHtml) as {
+        props?: { pageProps?: { productDetail?: IdefixProductDetail } }
+      } | null
+
+      const detail = detailData?.props?.pageProps?.productDetail
+      if (!detail) return null
+
+      const coverUrl = getCoverFromImages(detail.images)
+      const descInfo = detail.description ? parseDescription(detail.description) : {}
+
+      let translator: string | undefined
+      if (detail.subDescription) {
+        const transMatch = detail.subDescription.match(/[Çç]evirmen\s*:\s*([^<]+)/i)
+        if (transMatch) translator = transMatch[1].trim()
+      }
+
+      return {
+        isbn: detail.barcode || '',
+        title: detail.title || '',
+        author: detail.authorName || '',
+        publisher: detail.brandName || undefined,
+        publishedYear: descInfo.publishedYear,
+        pageCount: descInfo.pageCount,
+        description: sanitizeDescription(detail.description),
+        language: descInfo.language,
+        coverUrl,
+        translator,
+        bindingType: descInfo.bindingType,
+      }
+    } catch (error) {
+      console.error('Idefix lookupByUrl error:', error)
       return null
     }
   },
@@ -197,6 +239,9 @@ export const idefixScraper: BookScraper = {
           }
         }
 
+        const handleUrl = (variant as { handleUrl?: string }).handleUrl
+        const sourceUrl = handleUrl ? `https://www.idefix.com${handleUrl}` : undefined
+
         results.push({
           isbn: '',
           title: variant.originalName || variant.name || '',
@@ -205,6 +250,7 @@ export const idefixScraper: BookScraper = {
           coverUrl,
           language,
           bindingType,
+          sourceUrl,
         })
       }
 

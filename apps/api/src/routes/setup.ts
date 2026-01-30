@@ -49,5 +49,5 @@ export const setupRoutes = new Elysia({ prefix: '/api/setup' })
         email: t.String({ format: 'email' }),
         password: t.String({ minLength: 8 }),
       }),
-    }
+    },
   )
