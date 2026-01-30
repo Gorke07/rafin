@@ -1,13 +1,18 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { Building2, Loader2, Plus, Search, X } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { PageHeader } from '@/components/dashboard/page-header'
+import { EmptyState } from '@/components/dashboard/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { BookOpen, Building2, Loader2, Plus, Search, X } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -81,88 +86,93 @@ export default function PublishersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
-          {!isLoading && publishers.length > 0 && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t('publisherCount', { count: publishers.length })}
-            </p>
-          )}
-        </div>
+      <PageHeader
+        title={t('title')}
+        description={
+          !isLoading && publishers.length > 0
+            ? t('publisherCount', { count: publishers.length })
+            : undefined
+        }
+      >
         <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+          {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {showForm ? tc('cancel') : t('addPublisher')}
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Inline create form */}
       {showForm && (
-        <div className="flex gap-3 rounded-lg border bg-card p-4">
-          <div className="flex-1">
-            <Label>{t('name')}</Label>
-            <Input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder={t('name')}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            />
-          </div>
-          <div className="flex items-end">
-            <Button onClick={handleCreate} disabled={isCreating || !newName.trim()}>
-              {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {tc('create')}
-            </Button>
-          </div>
-        </div>
+        <Card>
+          <CardContent className="flex gap-3">
+            <div className="flex-1">
+              <Label>{t('name')}</Label>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder={t('name')}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button onClick={handleCreate} disabled={isCreating || !newName.trim()}>
+                {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
+                {tc('create')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Search */}
       <form onSubmit={handleSearch} className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
+        <Input
           type="text"
           placeholder={t('searchPublishers')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-4 text-sm"
+          className="pl-9"
         />
       </form>
 
       {/* Content */}
       {isLoading ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary" />
-          <p className="mt-4 text-sm text-muted-foreground">{tc('loading')}</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="flex items-start gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : publishers.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <Building2 className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <h3 className="mt-4 text-lg font-medium">{t('noPublishers')}</h3>
-        </div>
+        <EmptyState icon={Building2} title={t('noPublishers')} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {publishers.map((publisher) => (
-            <Link
-              key={publisher.id}
-              href={`/dashboard/publishers/${publisher.id}`}
-              className="group rounded-lg border bg-card p-4 transition-all hover:shadow-md hover:border-primary/40"
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Building2 className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold leading-tight truncate group-hover:text-primary">
-                    {publisher.name}
-                  </h3>
-                  <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <BookOpen className="h-3.5 w-3.5" />
-                    <span>{t('bookCount', { count: publisher.bookCount })}</span>
+            <Link key={publisher.id} href={`/dashboard/publishers/${publisher.id}`}>
+              <Card className="group h-full transition-colors hover:bg-accent/50">
+                <CardContent className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Building2 className="h-5 w-5" />
                   </div>
-                </div>
-              </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-semibold leading-tight group-hover:text-primary">
+                      {publisher.name}
+                    </h3>
+                    <div className="mt-1.5">
+                      <Badge variant="secondary">
+                        {t('bookCount', { count: publisher.bookCount })}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </Link>
           ))}
         </div>
