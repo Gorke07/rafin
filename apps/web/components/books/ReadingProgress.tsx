@@ -68,18 +68,17 @@ export function ReadingProgress({ bookId, totalPages, userBook, onUpdate }: Read
 
     try {
       if (!userBook) {
-        await fetch(`${API_URL}/api/user-books`, {
+        await fetch(`${API_URL}/api/user-books/${bookId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
-            bookId,
             status: newStatus || status,
             currentPage: newPage ?? currentPage,
           }),
         })
       } else {
-        await fetch(`${API_URL}/api/user-books/${userBook.id}`, {
+        await fetch(`${API_URL}/api/user-books/${bookId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

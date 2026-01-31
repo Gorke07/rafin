@@ -1,19 +1,30 @@
 import { books, db, userBooks } from '@rafin/db'
 import { and, desc, eq } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
+import { auth } from '../lib/auth'
 
 type ReadingStatus = 'tbr' | 'reading' | 'completed' | 'dnf'
 
 export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
+  .derive(async ({ request }) => {
+    const session = await auth.api.getSession({ headers: request.headers })
+    return {
+      user: session?.user ?? null,
+      session: session?.session ?? null,
+    }
+  })
+
   .get(
     '/',
-    async ({ query }) => {
-      const { userId, status, bookId } = query
-
-      const conditions = []
-      if (userId) {
-        conditions.push(eq(userBooks.userId, userId))
+    async ({ user, query, set }) => {
+      if (!user) {
+        set.status = 401
+        return { error: 'Unauthorized' }
       }
+
+      const { status, bookId } = query
+
+      const conditions = [eq(userBooks.userId, user.id)]
       if (status) {
         conditions.push(eq(userBooks.status, status as ReadingStatus))
       }
@@ -28,14 +39,13 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
         })
         .from(userBooks)
         .innerJoin(books, eq(userBooks.bookId, books.id))
-        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .where(and(...conditions))
         .orderBy(desc(userBooks.updatedAt))
 
       return { userBooks: result }
     },
     {
       query: t.Object({
-        userId: t.Optional(t.String()),
         status: t.Optional(t.String()),
         bookId: t.Optional(t.String()),
       }),
@@ -44,7 +54,12 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
 
   .post(
     '/:bookId',
-    async ({ params, body, set }) => {
+    async ({ params, body, user, set }) => {
+      if (!user) {
+        set.status = 401
+        return { error: 'Unauthorized' }
+      }
+
       // Check if book exists
       const bookExists = await db
         .select()
@@ -61,7 +76,7 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
       const existing = await db
         .select()
         .from(userBooks)
-        .where(and(eq(userBooks.userId, body.userId), eq(userBooks.bookId, Number(params.bookId))))
+        .where(and(eq(userBooks.userId, user.id), eq(userBooks.bookId, Number(params.bookId))))
         .limit(1)
 
       if (existing.length > 0) {
@@ -72,7 +87,7 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
       const result = await db
         .insert(userBooks)
         .values({
-          userId: body.userId,
+          userId: user.id,
           bookId: Number(params.bookId),
           status: (body.status as ReadingStatus) || 'tbr',
           currentPage: body.currentPage || 0,
@@ -87,7 +102,6 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
         bookId: t.String(),
       }),
       body: t.Object({
-        userId: t.String(),
         status: t.Optional(t.String()),
         currentPage: t.Optional(t.Number()),
       }),
@@ -96,11 +110,16 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
 
   .patch(
     '/:bookId',
-    async ({ params, body, set }) => {
+    async ({ params, body, user, set }) => {
+      if (!user) {
+        set.status = 401
+        return { error: 'Unauthorized' }
+      }
+
       const existing = await db
         .select()
         .from(userBooks)
-        .where(and(eq(userBooks.userId, body.userId), eq(userBooks.bookId, Number(params.bookId))))
+        .where(and(eq(userBooks.userId, user.id), eq(userBooks.bookId, Number(params.bookId))))
         .limit(1)
 
       if (existing.length === 0) {
@@ -129,7 +148,7 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
       const result = await db
         .update(userBooks)
         .set(updateData)
-        .where(and(eq(userBooks.userId, body.userId), eq(userBooks.bookId, Number(params.bookId))))
+        .where(and(eq(userBooks.userId, user.id), eq(userBooks.bookId, Number(params.bookId))))
         .returning()
 
       return { userBook: result[0] }
@@ -139,7 +158,6 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
         bookId: t.String(),
       }),
       body: t.Object({
-        userId: t.String(),
         status: t.Optional(t.String()),
         currentPage: t.Optional(t.Number()),
       }),
@@ -148,26 +166,21 @@ export const userBookRoutes = new Elysia({ prefix: '/api/user-books' })
 
   .delete(
     '/:bookId',
-    async ({ params, query, set }) => {
-      const { userId } = query
-
-      if (!userId) {
-        set.status = 400
-        return { error: 'userId is required' }
+    async ({ params, user, set }) => {
+      if (!user) {
+        set.status = 401
+        return { error: 'Unauthorized' }
       }
 
       await db
         .delete(userBooks)
-        .where(and(eq(userBooks.userId, userId), eq(userBooks.bookId, Number(params.bookId))))
+        .where(and(eq(userBooks.userId, user.id), eq(userBooks.bookId, Number(params.bookId))))
 
       return { success: true }
     },
     {
       params: t.Object({
         bookId: t.String(),
-      }),
-      query: t.Object({
-        userId: t.String(),
       }),
     },
   )
