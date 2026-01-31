@@ -21,7 +21,7 @@ FROM deps AS build-api
 
 COPY . .
 
-RUN cd apps/api && bun build src/index.ts --outdir dist --target bun
+RUN cd apps/api && bun build src/index.ts --outdir dist --target bun --external sharp
 
 # ============================================
 # Stage 3: build-web — Build Next.js app
