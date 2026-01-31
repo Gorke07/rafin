@@ -458,6 +458,11 @@
     "createNew": "\"{name}\" oluştur",
     "noResults": "Yayınevi bulunamadı. Yeni bir tane oluşturmak için yazın."
   },
+  "pagination": {
+    "showing": "{from}-{to} / {total} gösteriliyor",
+    "pageOf": "{page} / {totalPages}",
+    "perPage": "{count} / sayfa"
+  },
   "setup": {
     "welcome": "Ev kütüphanenize hoş geldiniz",
     "welcomeDescription": "Kitaplarınızı takip edin, raflarınızı düzenleyin ve okuma ilerlemenizi izleyin. Başlamak için admin hesabınızı oluşturalım.",

@@ -458,6 +458,11 @@
     "createNew": "Create \"{name}\"",
     "noResults": "No publishers found. Type to create a new one."
   },
+  "pagination": {
+    "showing": "Showing {from}-{to} of {total}",
+    "pageOf": "{page} / {totalPages}",
+    "perPage": "{count} / page"
+  },
   "setup": {
     "welcome": "Welcome to your home library",
     "welcomeDescription": "Track your books, organize your shelves, and monitor your reading progress. Let's set up your admin account to get started.",

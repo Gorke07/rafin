@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import { Input } from '@/components/ui/input'
+import { PaginationControls } from '@/components/ui/pagination-controls'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import {
@@ -65,6 +66,14 @@ export default function BooksPage() {
   const [sortField, setSortField] = useState<SortField>('createdAt')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [filters, setFilters] = useState<BookFilterValues>({ ...EMPTY_FILTERS })
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return Number(localStorage.getItem('books-pageSize')) || 24
+    }
+    return 24
+  })
+  const [total, setTotal] = useState(0)
 
   const fetchBooks = useCallback(async () => {
     setIsLoading(true)
@@ -73,19 +82,21 @@ export default function BooksPage() {
       if (searchQuery) params.set('search', searchQuery)
       if (filters.categoryId) params.set('categoryId', filters.categoryId)
       if (filters.status) params.set('status', filters.status)
-      const qs = params.toString()
-      const url = `${API_URL}/api/books${qs ? `?${qs}` : ''}`
+      params.set('limit', String(pageSize))
+      params.set('offset', String((page - 1) * pageSize))
+      const url = `${API_URL}/api/books?${params.toString()}`
       const response = await fetch(url, { credentials: 'include' })
       if (response.ok) {
         const data = await response.json()
         setBooks(data.books)
+        setTotal(data.total ?? data.books.length)
       }
     } catch (error) {
       console.error('Failed to fetch books:', error)
     } finally {
       setIsLoading(false)
     }
-  }, [searchQuery, filters.categoryId, filters.status])
+  }, [searchQuery, filters.categoryId, filters.status, page, pageSize])
 
   useEffect(() => {
     fetchBooks()
@@ -95,10 +106,19 @@ export default function BooksPage() {
     localStorage.setItem('books-view', view)
   }, [view])
 
+  useEffect(() => {
+    localStorage.setItem('books-pageSize', String(pageSize))
+  }, [pageSize])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchBooks()
+    setPage(1)
   }
+
+  const handleFiltersChange = useCallback((newFilters: BookFilterValues) => {
+    setFilters(newFilters)
+    setPage(1)
+  }, [])
 
   const languages = useMemo(() => {
     const langs = new Set<string>()
@@ -143,10 +163,10 @@ export default function BooksPage() {
       <PageHeader
         title={t('title')}
         description={
-          !isLoading && books.length > 0
+          !isLoading && total > 0
             ? filtered.length !== books.length
-              ? t('bookCount', { count: `${filtered.length}/${books.length}` })
-              : t('bookCount', { count: books.length })
+              ? t('bookCount', { count: `${filtered.length}/${total}` })
+              : t('bookCount', { count: total })
             : undefined
         }
       >
@@ -191,7 +211,7 @@ export default function BooksPage() {
         </div>
       </div>
 
-      <BookFilters filters={filters} onChange={setFilters} languages={languages} />
+      <BookFilters filters={filters} onChange={handleFiltersChange} languages={languages} />
 
       {isLoading ? (
         view === 'card' ? (
@@ -232,6 +252,16 @@ export default function BooksPage() {
         <CardView books={sorted} />
       ) : (
         <TableView books={sorted} sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
+      )}
+
+      {!isLoading && total > 0 && (
+        <PaginationControls
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       )}
     </div>
   )
