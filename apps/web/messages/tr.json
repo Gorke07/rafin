@@ -58,6 +58,17 @@
     "totalPublishers": "Toplam Yayınevi",
     "viewAll": "Tümünü Gör"
   },
+  "charts": {
+    "monthlyReading": "Tamamlanan Kitaplar",
+    "readingStatus": "Okuma Durumu",
+    "booksAdded": "Eklenen Kitaplar",
+    "booksCompleted": "Tamamlanan",
+    "booksAddedLabel": "Eklenen",
+    "avgRating": "Ort. Puan",
+    "noReadingData": "Henüz tamamlanan kitap yok",
+    "noStatusData": "Henüz okuma verisi yok",
+    "noAddedData": "Henüz kitap eklenmemiş"
+  },
   "books": {
     "title": "Kitaplar",
     "addBook": "Kitap Ekle",

@@ -1,6 +1,7 @@
 'use client'
 
 import { PageHeader } from '@/components/dashboard/page-header'
+import { ReadingCharts } from '@/components/dashboard/reading-charts'
 import { StatCard, StatCardSkeleton } from '@/components/dashboard/stat-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -244,6 +245,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <ReadingCharts />
     </div>
   )
 }

@@ -58,6 +58,17 @@
     "totalPublishers": "Total Publishers",
     "viewAll": "View All"
   },
+  "charts": {
+    "monthlyReading": "Books Completed",
+    "readingStatus": "Reading Status",
+    "booksAdded": "Books Added",
+    "booksCompleted": "Completed",
+    "booksAddedLabel": "Added",
+    "avgRating": "Avg. Rating",
+    "noReadingData": "No completed books yet",
+    "noStatusData": "No reading data yet",
+    "noAddedData": "No books added yet"
+  },
   "books": {
     "title": "Books",
     "addBook": "Add Book",
