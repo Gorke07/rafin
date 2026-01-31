@@ -275,7 +275,17 @@ function CollectionsContent() {
           ))}
         </div>
       ) : collections.length === 0 ? (
-        <EmptyState icon={Library} title={t('noCollections')} description={t('organizeBooks')} />
+        <EmptyState
+          icon={Library}
+          title={t('noCollections')}
+          description={t('noCollectionsHint')}
+          action={
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4" />
+              {t('addCollection')}
+            </Button>
+          }
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {collections.map((col) => (

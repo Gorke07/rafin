@@ -151,7 +151,11 @@ export default function PublishersPage() {
           ))}
         </div>
       ) : publishers.length === 0 ? (
-        <EmptyState icon={Building2} title={t('noPublishers')} />
+        <EmptyState
+          icon={Building2}
+          title={t('noPublishers')}
+          description={t('noPublishersHint')}
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {publishers.map((publisher) => (

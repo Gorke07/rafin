@@ -1,12 +1,14 @@
 'use client'
 
+import { BookCoverPlaceholder } from '@/components/books/BookCoverPlaceholder'
 import { EmptyState } from '@/components/dashboard/empty-state'
 import { PageHeader } from '@/components/dashboard/page-header'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BookMarked, BookOpen, CheckCircle, XCircle } from 'lucide-react'
+import { BookMarked, BookOpen, CheckCircle, Search, XCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
@@ -120,6 +122,14 @@ export default function ReadingPage() {
               icon={BookMarked}
               title={t('noBooksInTab')}
               description={t('noBooksInTabHint', { status: statusLabels[activeTab] })}
+              action={
+                <Button variant="outline" asChild>
+                  <Link href="/dashboard/books">
+                    <Search className="h-4 w-4" />
+                    {t('goToBooks')}
+                  </Link>
+                </Button>
+              }
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,9 +147,7 @@ export default function ReadingPage() {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <BookOpen className="h-6 w-6 text-muted-foreground/30" />
-                            </div>
+                            <BookCoverPlaceholder title={item.book.title} size="sm" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">

@@ -1,6 +1,6 @@
+import { BookCoverPlaceholder } from '@/components/books/BookCoverPlaceholder'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
 interface BookCardProps {
@@ -31,9 +31,7 @@ export function BookCard({ book }: BookCardProps) {
                 className="h-full w-full object-cover transition-transform group-hover:scale-105"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <BookOpen className="h-10 w-10 text-muted-foreground/30" />
-              </div>
+              <BookCoverPlaceholder title={book.title} author={book.authorNames} size="lg" />
             )}
           </div>
           <div className="p-3">

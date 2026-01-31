@@ -1,5 +1,6 @@
 'use client'
 
+import { BookCoverPlaceholder } from '@/components/books/BookCoverPlaceholder'
 import { BookNotes } from '@/components/books/BookNotes'
 import { BookQuotes } from '@/components/books/BookQuotes'
 import { BookReview } from '@/components/books/BookReview'
@@ -14,14 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { plainTextToHtml } from '@/lib/html-utils'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import DOMPurify from 'dompurify'
-import {
-  ArrowLeft,
-  Book as BookIcon,
-  Calendar,
-  Image as ImageIcon,
-  MapPin,
-  Tag,
-} from 'lucide-react'
+import { ArrowLeft, Book as BookIcon, Calendar, MapPin, Tag } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { use, useCallback, useEffect, useState } from 'react'
@@ -179,9 +173,11 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             {coverSrc ? (
               <img src={coverSrc} alt={book.title} className="h-full w-full object-contain" />
             ) : (
-              <div className="flex h-full items-center justify-center">
-                <ImageIcon className="h-16 w-16 text-muted-foreground/30" />
-              </div>
+              <BookCoverPlaceholder
+                title={book.title}
+                author={book.authors?.map((a) => a.name).join(', ')}
+                size="lg"
+              />
             )}
           </div>
 

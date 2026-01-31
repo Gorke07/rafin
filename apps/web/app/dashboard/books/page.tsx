@@ -1,5 +1,6 @@
 'use client'
 
+import { BookCoverPlaceholder } from '@/components/books/BookCoverPlaceholder'
 import { BookFilters, EMPTY_FILTERS } from '@/components/books/BookFilters'
 import type { BookFilterValues } from '@/components/books/BookFilters'
 import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
@@ -235,19 +236,46 @@ export default function BooksPage() {
           </Card>
         )
       ) : filtered.length === 0 ? (
-        <EmptyState
-          icon={BookOpen}
-          title={t('noBooks')}
-          description={t('startWithFirstBook')}
-          action={
-            <Button asChild>
-              <Link href="/dashboard/books/new">
-                <Plus className="h-4 w-4" />
-                {t('addBook')}
-              </Link>
-            </Button>
-          }
-        />
+        total > 0 ||
+        searchQuery ||
+        filters.categoryId ||
+        filters.status ||
+        filters.language ||
+        filters.bindingType ||
+        filters.yearFrom ||
+        filters.yearTo ? (
+          <EmptyState
+            icon={Search}
+            title={t('noBooksFiltered')}
+            description={t('noBooksFilteredHint')}
+            action={
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery('')
+                  setFilters({ ...EMPTY_FILTERS })
+                  setPage(1)
+                }}
+              >
+                {t('clearFilters')}
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon={BookOpen}
+            title={t('noBooks')}
+            description={t('startWithFirstBook')}
+            action={
+              <Button asChild>
+                <Link href="/dashboard/books/new">
+                  <Plus className="h-4 w-4" />
+                  {t('addBook')}
+                </Link>
+              </Button>
+            }
+          />
+        )
       ) : view === 'card' ? (
         <CardView books={sorted} />
       ) : (
@@ -405,10 +433,8 @@ function TableView({
                       </HoverCard>
                     ) : (
                       <Link href={`/dashboard/books/${book.id}`}>
-                        <div className="h-10 w-7 overflow-hidden rounded bg-muted">
-                          <div className="flex h-full items-center justify-center">
-                            <BookOpen className="h-3.5 w-3.5 text-muted-foreground/40" />
-                          </div>
+                        <div className="h-10 w-7 overflow-hidden rounded">
+                          <BookCoverPlaceholder title={book.title} size="sm" />
                         </div>
                       </Link>
                     )}

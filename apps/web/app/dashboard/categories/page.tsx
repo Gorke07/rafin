@@ -144,7 +144,17 @@ export default function CategoriesPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Tag} title={t('noCategories')} description={t('organizeBooks')} />
+        <EmptyState
+          icon={Tag}
+          title={t('noCategories')}
+          description={t('noCategoriesHint')}
+          action={
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4" />
+              {t('addCategory')}
+            </Button>
+          }
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((category) => (

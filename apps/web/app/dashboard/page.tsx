@@ -1,5 +1,6 @@
 'use client'
 
+import { BookCoverPlaceholder } from '@/components/books/BookCoverPlaceholder'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { ReadingCharts } from '@/components/dashboard/reading-charts'
 import { StatCard, StatCardSkeleton } from '@/components/dashboard/stat-card'
@@ -178,9 +179,7 @@ export default function DashboardPage() {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <BookOpen className="h-5 w-5 text-muted-foreground/30" />
-                          </div>
+                          <BookCoverPlaceholder title={item.book.title} size="sm" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -231,9 +230,7 @@ export default function DashboardPage() {
                         {src ? (
                           <img src={src} alt={book.title} className="h-full w-full object-cover" />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <BookOpen className="h-5 w-5 text-muted-foreground/30" />
-                          </div>
+                          <BookCoverPlaceholder title={book.title} size="sm" />
                         )}
                       </div>
                       <p className="min-w-0 truncate text-sm font-medium">{book.title}</p>

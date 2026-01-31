@@ -1,5 +1,6 @@
 'use client'
 
+import { BookCoverPlaceholder } from '@/components/books/BookCoverPlaceholder'
 import {
   EMPTY_SMART_FILTERS,
   SmartCollectionRuleBuilder,
@@ -23,16 +24,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import {
-  ArrowLeft,
-  Book,
-  Edit,
-  Image as ImageIcon,
-  Loader2,
-  Sparkles,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { ArrowLeft, Book, Edit, Loader2, Sparkles, Trash2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -354,9 +346,11 @@ function CollectionDetailContent({ id }: { id: string }) {
                     {coverSrc ? (
                       <img src={coverSrc} alt={book.title} className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
-                      </div>
+                      <BookCoverPlaceholder
+                        title={book.title}
+                        author={book.authorNames}
+                        size="sm"
+                      />
                     )}
                   </Link>
 
