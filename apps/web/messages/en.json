@@ -69,6 +69,17 @@
     "noStatusData": "No reading data yet",
     "noAddedData": "No books added yet"
   },
+  "filters": {
+    "filters": "Filters",
+    "clearAll": "Clear",
+    "all": "All",
+    "language": "Language",
+    "bindingType": "Binding",
+    "category": "Category",
+    "readingStatus": "Status",
+    "yearFrom": "From",
+    "yearTo": "To"
+  },
   "books": {
     "title": "Books",
     "addBook": "Add Book",

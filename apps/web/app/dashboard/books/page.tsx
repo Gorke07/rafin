@@ -1,5 +1,7 @@
 'use client'
 
+import { BookFilters, EMPTY_FILTERS } from '@/components/books/BookFilters'
+import type { BookFilterValues } from '@/components/books/BookFilters'
 import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
 import { EmptyState } from '@/components/dashboard/empty-state'
 import { PageHeader } from '@/components/dashboard/page-header'
@@ -21,7 +23,7 @@ import {
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -62,20 +64,17 @@ export default function BooksPage() {
   })
   const [sortField, setSortField] = useState<SortField>('createdAt')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [filters, setFilters] = useState<BookFilterValues>({ ...EMPTY_FILTERS })
 
-  useEffect(() => {
-    fetchBooks()
-  }, [])
-
-  useEffect(() => {
-    localStorage.setItem('books-view', view)
-  }, [view])
-
-  const fetchBooks = async (search?: string) => {
+  const fetchBooks = useCallback(async () => {
+    setIsLoading(true)
     try {
-      const url = search
-        ? `${API_URL}/api/books?search=${encodeURIComponent(search)}`
-        : `${API_URL}/api/books`
+      const params = new URLSearchParams()
+      if (searchQuery) params.set('search', searchQuery)
+      if (filters.categoryId) params.set('categoryId', filters.categoryId)
+      if (filters.status) params.set('status', filters.status)
+      const qs = params.toString()
+      const url = `${API_URL}/api/books${qs ? `?${qs}` : ''}`
       const response = await fetch(url, { credentials: 'include' })
       if (response.ok) {
         const data = await response.json()
@@ -86,12 +85,28 @@ export default function BooksPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [searchQuery, filters.categoryId, filters.status])
+
+  useEffect(() => {
+    fetchBooks()
+  }, [fetchBooks])
+
+  useEffect(() => {
+    localStorage.setItem('books-view', view)
+  }, [view])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchBooks(searchQuery)
+    fetchBooks()
   }
+
+  const languages = useMemo(() => {
+    const langs = new Set<string>()
+    for (const book of books) {
+      if (book.language) langs.add(book.language)
+    }
+    return Array.from(langs).sort()
+  }, [books])
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -102,7 +117,17 @@ export default function BooksPage() {
     }
   }
 
-  const sorted = [...books].sort((a, b) => {
+  const filtered = books.filter((book) => {
+    if (filters.language && book.language !== filters.language) return false
+    if (filters.bindingType && book.bindingType !== filters.bindingType) return false
+    if (filters.yearFrom && (!book.publishedYear || book.publishedYear < Number(filters.yearFrom)))
+      return false
+    if (filters.yearTo && (!book.publishedYear || book.publishedYear > Number(filters.yearTo)))
+      return false
+    return true
+  })
+
+  const sorted = [...filtered].sort((a, b) => {
     const dir = sortDir === 'asc' ? 1 : -1
     const av = a[sortField]
     const bv = b[sortField]
@@ -118,7 +143,11 @@ export default function BooksPage() {
       <PageHeader
         title={t('title')}
         description={
-          !isLoading && books.length > 0 ? t('bookCount', { count: books.length }) : undefined
+          !isLoading && books.length > 0
+            ? filtered.length !== books.length
+              ? t('bookCount', { count: `${filtered.length}/${books.length}` })
+              : t('bookCount', { count: books.length })
+            : undefined
         }
       >
         <Button asChild>
@@ -162,7 +191,8 @@ export default function BooksPage() {
         </div>
       </div>
 
-      {/* Content */}
+      <BookFilters filters={filters} onChange={setFilters} languages={languages} />
+
       {isLoading ? (
         view === 'card' ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -184,7 +214,7 @@ export default function BooksPage() {
             </div>
           </Card>
         )
-      ) : books.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <EmptyState
           icon={BookOpen}
           title={t('noBooks')}

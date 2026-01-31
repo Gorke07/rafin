@@ -69,6 +69,17 @@
     "noStatusData": "Henüz okuma verisi yok",
     "noAddedData": "Henüz kitap eklenmemiş"
   },
+  "filters": {
+    "filters": "Filtreler",
+    "clearAll": "Temizle",
+    "all": "Tümü",
+    "language": "Dil",
+    "bindingType": "Cilt",
+    "category": "Kategori",
+    "readingStatus": "Durum",
+    "yearFrom": "Başlangıç",
+    "yearTo": "Bitiş"
+  },
   "books": {
     "title": "Kitaplar",
     "addBook": "Kitap Ekle",
