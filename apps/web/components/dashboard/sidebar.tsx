@@ -16,6 +16,7 @@ import {
   MapPin,
   Menu,
   Settings,
+  Tag,
   User,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -72,6 +73,7 @@ function useNavItems() {
     { href: '/dashboard/authors', label: t('authors'), icon: User },
     { href: '/dashboard/publishers', label: t('publishers'), icon: Building2 },
     { href: '/dashboard/collections', label: t('collections'), icon: Library },
+    { href: '/dashboard/categories', label: t('categories'), icon: Tag },
     { href: '/dashboard/locations', label: t('locations'), icon: MapPin },
     { href: '/dashboard/reading', label: t('reading'), icon: BookMarked },
     { href: '/dashboard/settings', label: t('settings'), icon: Settings },

@@ -41,6 +41,7 @@
     "collections": "Collections",
     "authors": "Authors",
     "publishers": "Publishers",
+    "categories": "Categories",
     "settings": "Settings",
     "logout": "Logout"
   },
@@ -333,6 +334,25 @@
     "selectAuthors": "Select authors...",
     "createNew": "Create \"{name}\"",
     "noResults": "No authors found. Type to create a new one."
+  },
+  "categories": {
+    "title": "Categories",
+    "categoryCount": "{count} categories",
+    "addCategory": "Add Category",
+    "name": "Name",
+    "noCategories": "No categories found.",
+    "searchCategories": "Search categories...",
+    "books": "Books",
+    "bookCount": "{count} books",
+    "deleteConfirm": "Delete category?",
+    "deleteConfirmDescription": "This will permanently delete {name} and remove it from all books. This action cannot be undone.",
+    "categoryCreated": "Category created successfully",
+    "categoryUpdated": "Category updated successfully",
+    "categoryDeleted": "Category deleted successfully",
+    "noBooksInCategory": "No books in this category yet",
+    "backToCategories": "Back to Categories",
+    "categoryNotFound": "Category not found",
+    "organizeBooks": "Organize your books with categories"
   },
   "publishers": {
     "title": "Publishers",

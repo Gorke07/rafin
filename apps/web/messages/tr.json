@@ -41,6 +41,7 @@
     "collections": "Koleksiyonlar",
     "authors": "Yazarlar",
     "publishers": "Yayınevleri",
+    "categories": "Kategoriler",
     "settings": "Ayarlar",
     "logout": "Çıkış Yap"
   },
@@ -333,6 +334,25 @@
     "selectAuthors": "Yazar seçin...",
     "createNew": "\"{name}\" oluştur",
     "noResults": "Yazar bulunamadı. Yeni bir tane oluşturmak için yazın."
+  },
+  "categories": {
+    "title": "Kategoriler",
+    "categoryCount": "{count} kategori",
+    "addCategory": "Kategori Ekle",
+    "name": "Ad",
+    "noCategories": "Kategori bulunamadı.",
+    "searchCategories": "Kategori ara...",
+    "books": "Kitaplar",
+    "bookCount": "{count} kitap",
+    "deleteConfirm": "Kategoriyi sil?",
+    "deleteConfirmDescription": "{name} kalıcı olarak silinecek ve tüm kitaplardan kaldırılacak. Bu işlem geri alınamaz.",
+    "categoryCreated": "Kategori başarıyla oluşturuldu",
+    "categoryUpdated": "Kategori başarıyla güncellendi",
+    "categoryDeleted": "Kategori başarıyla silindi",
+    "noBooksInCategory": "Bu kategoride henüz kitap yok",
+    "backToCategories": "Kategorilere Dön",
+    "categoryNotFound": "Kategori bulunamadı",
+    "organizeBooks": "Kitaplarınızı kategorilerle düzenleyin"
   },
   "publishers": {
     "title": "Yayınevleri",
