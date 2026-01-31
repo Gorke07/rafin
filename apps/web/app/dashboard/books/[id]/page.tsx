@@ -8,6 +8,7 @@ import { QuickActions } from '@/components/books/QuickActions'
 import { ReadingProgress } from '@/components/books/ReadingProgress'
 import { AddToCollectionModal } from '@/components/collections/AddToCollectionModal'
 import { Badge } from '@/components/ui/badge'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -146,13 +147,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="space-y-6">
+      {/* Breadcrumbs */}
+      <Breadcrumbs
+        items={[{ label: t('title'), href: '/dashboard/books' }, { label: book.title }]}
+      />
+
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/books">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">{book.title}</h1>
           <p className="text-lg text-muted-foreground">

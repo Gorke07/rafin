@@ -13,6 +13,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -155,12 +156,11 @@ export default function CategoryDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs
+        items={[{ label: t('title'), href: '/dashboard/categories' }, { label: category.name }]}
+      />
+
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/categories">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
         <div className="flex-1">
           {isEditing ? (
             <Card>

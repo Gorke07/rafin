@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -211,12 +212,11 @@ function CollectionDetailContent({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs
+        items={[{ label: t('title'), href: '/dashboard/collections' }, { label: collection.name }]}
+      />
+
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/collections">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
         <div className="flex flex-1 items-center gap-3">
           <div
             className="h-8 w-8 shrink-0 rounded-lg"
