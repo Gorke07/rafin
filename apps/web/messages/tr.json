@@ -154,6 +154,9 @@
     "noCategories": "Henüz kategori yok",
     "noCollections": "Henüz koleksiyon yok",
     "titleColumn": "Başlık",
+    "readMore": "Devamını oku",
+    "readLess": "Daralt",
+    "aboutThisEdition": "Bu Baskı Hakkında",
     "richText": {
       "bold": "Kalın",
       "italic": "İtalik",

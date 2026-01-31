@@ -154,6 +154,9 @@
     "noCategories": "No categories yet",
     "noCollections": "No collections yet",
     "titleColumn": "Title",
+    "readMore": "Read more",
+    "readLess": "Read less",
+    "aboutThisEdition": "About This Edition",
     "richText": {
       "bold": "Bold",
       "italic": "Italic",
