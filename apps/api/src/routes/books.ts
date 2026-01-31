@@ -10,8 +10,9 @@ import {
   collections,
   db,
   publishers,
+  userBooks,
 } from '@rafin/db'
-import { and, desc, eq, isNull, like, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, like, or } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
 import { downloadAndProcessCover } from '../services/image'
 import { sanitizeDescription } from '../services/sanitize-html'
@@ -22,26 +23,38 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
   .get(
     '/',
     async ({ query }) => {
-      const { search, limit = 50, offset = 0 } = query
+      const { search, limit = 50, offset = 0, categoryId, status } = query
 
-      let whereClause = isNull(books.deletedAt)
+      const conditions = [isNull(books.deletedAt)]
 
       if (search) {
-        whereClause = and(
-          isNull(books.deletedAt),
-          or(like(books.title, `%${search}%`), like(books.isbn, `%${search}%`)),
-        )!
+        conditions.push(or(like(books.title, `%${search}%`), like(books.isbn, `%${search}%`))!)
+      }
+
+      if (categoryId) {
+        const bookIdsInCategory = db
+          .select({ bookId: bookCategories.bookId })
+          .from(bookCategories)
+          .where(eq(bookCategories.categoryId, Number(categoryId)))
+        conditions.push(inArray(books.id, bookIdsInCategory))
+      }
+
+      if (status) {
+        const bookIdsWithStatus = db
+          .select({ bookId: userBooks.bookId })
+          .from(userBooks)
+          .where(eq(userBooks.status, status as 'tbr' | 'reading' | 'completed' | 'dnf'))
+        conditions.push(inArray(books.id, bookIdsWithStatus))
       }
 
       const result = await db
         .select()
         .from(books)
-        .where(whereClause)
+        .where(and(...conditions))
         .orderBy(desc(books.createdAt))
         .limit(Number(limit))
         .offset(Number(offset))
 
-      // Attach authors to each book
       const booksWithAuthors = await Promise.all(
         result.map(async (book) => {
           const bookAuths = await db
@@ -65,6 +78,8 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         search: t.Optional(t.String()),
         limit: t.Optional(t.String()),
         offset: t.Optional(t.String()),
+        categoryId: t.Optional(t.String()),
+        status: t.Optional(t.String()),
       }),
     },
   )
