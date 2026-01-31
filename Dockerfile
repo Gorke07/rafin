@@ -32,8 +32,7 @@ RUN cd apps/api && bun build src/index.ts --outdir dist --target bun
 # ============================================
 FROM deps AS build-web
 
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=__NEXT_PUBLIC_API_URL_PLACEHOLDER__
 
 COPY . .
 
@@ -84,8 +83,10 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=build-web /app/apps/web/.next/standalone ./
 COPY --from=build-web /app/apps/web/.next/static apps/web/.next/static
 COPY --from=build-web /app/apps/web/public apps/web/public
+COPY apps/web/entrypoint.sh /app/entrypoint.sh
 
-RUN chown -R nextjs:nodejs .
+RUN chmod +x /app/entrypoint.sh && \
+    chown -R nextjs:nodejs .
 
 USER nextjs
 
@@ -93,4 +94,5 @@ ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
 EXPOSE 3000
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["node", "apps/web/server.js"]
