@@ -1,11 +1,7 @@
 # ============================================
 # Stage 1: deps — Install dependencies
 # ============================================
-FROM node:22-alpine AS deps
-
-RUN apk add --no-cache curl bash && \
-    curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:$PATH"
+FROM oven/bun:1.3-alpine AS deps
 
 WORKDIR /app
 
@@ -36,7 +32,7 @@ ENV NEXT_PUBLIC_API_URL=__NEXT_PUBLIC_API_URL_PLACEHOLDER__
 
 COPY . .
 
-RUN cd apps/web && npx next build
+RUN cd apps/web && bunx next build
 
 # ============================================
 # Stage 4: runner-api — Minimal Bun runtime
@@ -71,9 +67,9 @@ EXPOSE 3001
 CMD ["bun", "run", "apps/api/dist/index.js"]
 
 # ============================================
-# Stage 5: runner-web — Minimal Node.js runtime
+# Stage 5: runner-web — Minimal Bun runtime
 # ============================================
-FROM node:22-alpine AS runner-web
+FROM oven/bun:1.3-alpine AS runner-web
 
 WORKDIR /app
 
@@ -95,4 +91,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["node", "apps/web/server.js"]
+CMD ["bun", "run", "apps/web/server.js"]
