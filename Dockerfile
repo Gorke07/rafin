@@ -110,7 +110,7 @@ COPY packages/db/package.json packages/db/package.json
 COPY packages/shared/package.json packages/shared/package.json
 COPY packages/ui/package.json packages/ui/package.json
 
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --production
 
 # Workspace packages (Bun loads .ts directly)
 COPY packages/db/src packages/db/src

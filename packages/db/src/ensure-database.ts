@@ -1,3 +1,5 @@
+import { drizzle } from 'drizzle-orm/postgres-js'
+import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import postgres from 'postgres'
 
 const url = process.env.DATABASE_URL
@@ -58,3 +60,17 @@ try {
   process.exit(1)
 }
 await admin.end()
+
+console.log('[rafin] Running migrations...')
+const migrationClient = postgres(url, { max: 1 })
+const db = drizzle(migrationClient)
+try {
+  await migrate(db, { migrationsFolder: '/app/packages/db/drizzle' })
+  console.log('[rafin] Migrations complete')
+} catch (err) {
+  const message = err instanceof Error ? err.message : String(err)
+  console.error('[rafin] Migration failed:', message)
+  await migrationClient.end()
+  process.exit(1)
+}
+await migrationClient.end()
