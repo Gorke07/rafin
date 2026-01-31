@@ -1,6 +1,8 @@
 'use client'
 
 import { BookNotes } from '@/components/books/BookNotes'
+import { BookQuotes } from '@/components/books/BookQuotes'
+import { BookReview } from '@/components/books/BookReview'
 import { QuickActions } from '@/components/books/QuickActions'
 import { ReadingProgress } from '@/components/books/ReadingProgress'
 import { AddToCollectionModal } from '@/components/collections/AddToCollectionModal'
@@ -194,6 +196,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             }}
           />
 
+          {/* Review */}
+          <BookReview bookId={book.id} />
+
           {/* Categories */}
           {book.categories && book.categories.length > 0 && (
             <Card>
@@ -244,9 +249,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         {/* Right Content */}
         <div>
           <Tabs defaultValue="details">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="details">{t('details')}</TabsTrigger>
               <TabsTrigger value="notes">{t('notes')}</TabsTrigger>
+              <TabsTrigger value="quotes">{t('quotes')}</TabsTrigger>
               <TabsTrigger value="purchase">{t('purchase')}</TabsTrigger>
             </TabsList>
 
@@ -344,6 +350,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
             <TabsContent value="notes" className="pt-4">
               <BookNotes bookId={book.id} />
+            </TabsContent>
+
+            <TabsContent value="quotes" className="pt-4">
+              <BookQuotes bookId={book.id} />
             </TabsContent>
 
             <TabsContent value="purchase" className="space-y-6 pt-4">

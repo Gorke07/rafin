@@ -68,6 +68,7 @@
     "search": "Search books...",
     "details": "Book Details",
     "notes": "Notes",
+    "quotes": "Quotes",
     "collections": "Collections",
     "description": "Description",
     "coverUpload": "Upload Cover",
@@ -150,6 +151,29 @@
     "noNotes": "No notes added yet",
     "deleteNote": "Delete note",
     "pageLabel": "Page {page}"
+  },
+  "quotes": {
+    "quotesCount": "Quotes ({count})",
+    "addQuote": "Add Quote",
+    "writeQuote": "Write the quote...",
+    "pageNumber": "Page No",
+    "optional": "optional",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noQuotes": "No quotes added yet",
+    "deleteQuote": "Delete quote",
+    "pageLabel": "Page {page}"
+  },
+  "reviews": {
+    "title": "My Rating",
+    "addReview": "Add Rating",
+    "editReview": "Edit rating",
+    "deleteReview": "Delete rating",
+    "selectRating": "Click a star to rate",
+    "writeReview": "Write your review (optional)...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noReview": "Not rated yet"
   },
   "coverUpload": {
     "invalidFileType": "Invalid file type. Upload JPEG, PNG, or WebP.",

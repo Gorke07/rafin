@@ -68,6 +68,7 @@
     "search": "Kitap ara...",
     "details": "Kitap Detayları",
     "notes": "Notlar",
+    "quotes": "Alıntılar",
     "collections": "Koleksiyonlar",
     "description": "Açıklama",
     "coverUpload": "Kapak Yükle",
@@ -150,6 +151,29 @@
     "noNotes": "Henüz not eklenmemiş",
     "deleteNote": "Notu sil",
     "pageLabel": "Sayfa {page}"
+  },
+  "quotes": {
+    "quotesCount": "Alıntılar ({count})",
+    "addQuote": "Alıntı Ekle",
+    "writeQuote": "Alıntıyı yazın...",
+    "pageNumber": "Sayfa No",
+    "optional": "opsiyonel",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "noQuotes": "Henüz alıntı eklenmemiş",
+    "deleteQuote": "Alıntıyı sil",
+    "pageLabel": "Sayfa {page}"
+  },
+  "reviews": {
+    "title": "Puanım",
+    "addReview": "Puan Ver",
+    "editReview": "Puanı düzenle",
+    "deleteReview": "Puanı sil",
+    "selectRating": "Puanlamak için bir yıldıza tıklayın",
+    "writeReview": "İncelemenizi yazın (opsiyonel)...",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "noReview": "Henüz puanlanmamış"
   },
   "coverUpload": {
     "invalidFileType": "Geçersiz dosya türü. JPEG, PNG veya WebP yükleyin.",
