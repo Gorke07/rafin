@@ -34,21 +34,29 @@ export function ReadingProgress({ bookId, totalPages, userBook, onUpdate }: Read
 
   const statusConfig: Record<ReadingStatus, { label: string; icon: typeof Clock; color: string }> =
     {
-      tbr: { label: t('tbr'), icon: Clock, color: 'bg-blue-100 text-blue-700 border-blue-200' },
+      tbr: {
+        label: t('tbr'),
+        icon: Clock,
+        color:
+          'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
+      },
       reading: {
         label: t('reading'),
         icon: BookOpen,
-        color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        color:
+          'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800',
       },
       completed: {
         label: t('completed'),
         icon: CheckCircle,
-        color: 'bg-green-100 text-green-700 border-green-200',
+        color:
+          'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800',
       },
       dnf: {
         label: t('dnf'),
         icon: XCircle,
-        color: 'bg-red-100 text-red-700 border-red-200',
+        color:
+          'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
       },
     }
 
