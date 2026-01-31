@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  EMPTY_SMART_FILTERS,
+  SmartCollectionRuleBuilder,
+  type SmartFilters,
+} from '@/components/collections/SmartCollectionRuleBuilder'
 import { EmptyState } from '@/components/dashboard/empty-state'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { Badge } from '@/components/ui/badge'
@@ -18,7 +23,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Library, Loader2, MoreVertical, Plus, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -45,6 +50,11 @@ function CollectionsContent() {
   const [newDescription, setNewDescription] = useState('')
   const [newColor, setNewColor] = useState('#3b82f6')
   const [isCreating, setIsCreating] = useState(false)
+  const [isSmart, setIsSmart] = useState(false)
+  const [smartFilters, setSmartFilters] = useState<SmartFilters>(EMPTY_SMART_FILTERS)
+  const [previewCount, setPreviewCount] = useState<number | null>(null)
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchCollections = useCallback(async () => {
     try {
@@ -64,8 +74,56 @@ function CollectionsContent() {
     fetchCollections()
   }, [fetchCollections])
 
+  const fetchPreview = useCallback(async (filters: SmartFilters) => {
+    const validRules = filters.rules.filter((r) => r.value !== '')
+    if (validRules.length === 0) {
+      setPreviewCount(null)
+      return
+    }
+
+    setIsLoadingPreview(true)
+    try {
+      const response = await fetch(`${API_URL}/api/collections/preview-smart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          smartFilters: { ...filters, rules: validRules },
+        }),
+      })
+      const data = await response.json()
+      setPreviewCount(data.count ?? null)
+    } catch {
+      setPreviewCount(null)
+    } finally {
+      setIsLoadingPreview(false)
+    }
+  }, [])
+
+  const handleSmartFiltersChange = useCallback(
+    (filters: SmartFilters) => {
+      setSmartFilters(filters)
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
+      previewTimerRef.current = setTimeout(() => fetchPreview(filters), 500)
+    },
+    [fetchPreview],
+  )
+
+  const resetForm = () => {
+    setNewName('')
+    setNewDescription('')
+    setNewColor('#3b82f6')
+    setIsSmart(false)
+    setSmartFilters(EMPTY_SMART_FILTERS)
+    setPreviewCount(null)
+    setShowForm(false)
+  }
+
   const handleCreate = async () => {
     if (!newName.trim()) return
+
+    const validRules = smartFilters.rules.filter((r) => r.value !== '')
+    if (isSmart && validRules.length === 0) return
 
     setIsCreating(true)
     try {
@@ -77,15 +135,14 @@ function CollectionsContent() {
           name: newName,
           description: newDescription || undefined,
           color: newColor,
+          isSmart,
+          smartFilters: isSmart ? { ...smartFilters, rules: validRules } : undefined,
         }),
       })
 
       if (response.ok) {
         addToast(t('created'), 'success')
-        setNewName('')
-        setNewDescription('')
-        setNewColor('#3b82f6')
-        setShowForm(false)
+        resetForm()
         fetchCollections()
       }
     } catch {
@@ -117,11 +174,22 @@ function CollectionsContent() {
         </Button>
       </PageHeader>
 
-      {/* New Collection Form */}
       {showForm && (
         <Card>
           <CardContent className="space-y-4">
-            <h2 className="text-lg font-semibold">{t('newCollection')}</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t('newCollection')}</h2>
+              <Button
+                type="button"
+                variant={isSmart ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setIsSmart(!isSmart)}
+              >
+                <Sparkles className="mr-1 h-4 w-4" />
+                {t('smartCollection')}
+              </Button>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <Label htmlFor="col-name">{t('collectionName')}</Label>
@@ -160,12 +228,30 @@ function CollectionsContent() {
                 placeholder={t('descriptionPlaceholder')}
               />
             </div>
+
+            {isSmart && (
+              <SmartCollectionRuleBuilder
+                value={smartFilters}
+                onChange={handleSmartFiltersChange}
+                previewCount={previewCount}
+                isLoadingPreview={isLoadingPreview}
+              />
+            )}
+
             <div className="flex gap-2">
-              <Button onClick={handleCreate} disabled={isCreating || !newName.trim()}>
+              <Button
+                type="button"
+                onClick={handleCreate}
+                disabled={
+                  isCreating ||
+                  !newName.trim() ||
+                  (isSmart && smartFilters.rules.every((r) => r.value === ''))
+                }
+              >
                 {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
                 {tc('create')}
               </Button>
-              <Button variant="ghost" onClick={() => setShowForm(false)}>
+              <Button type="button" variant="ghost" onClick={resetForm}>
                 {tc('cancel')}
               </Button>
             </div>
@@ -173,7 +259,6 @@ function CollectionsContent() {
         </Card>
       )}
 
-      {/* Collection Grid */}
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -224,7 +309,6 @@ function CollectionsContent() {
                   </div>
                 </Link>
 
-                {/* Actions dropdown */}
                 <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

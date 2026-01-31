@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  EMPTY_SMART_FILTERS,
+  SmartCollectionRuleBuilder,
+  type SmartFilters,
+} from '@/components/collections/SmartCollectionRuleBuilder'
 import { EmptyState } from '@/components/dashboard/empty-state'
 import {
   AlertDialog,
@@ -18,7 +23,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Book, Edit, Image as ImageIcon, Trash2, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  Book,
+  Edit,
+  Image as ImageIcon,
+  Loader2,
+  Sparkles,
+  Trash2,
+  X,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -32,6 +46,7 @@ interface CollectionDetail {
   description: string | null
   color: string | null
   isSmart: boolean
+  smartFilters: SmartFilters | null
   createdAt: string
 }
 
@@ -39,13 +54,13 @@ interface CollectionBook {
   book: {
     id: number
     title: string
-    author: string
+    authorNames?: string
     coverPath: string | null
     coverUrl: string | null
     pageCount: number | null
     publishedYear: number | null
   }
-  addedAt: string
+  addedAt: string | null
   position: number | null
 }
 
@@ -61,6 +76,9 @@ function CollectionDetailContent({ id }: { id: string }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState('')
+  const [isEditingRules, setIsEditingRules] = useState(false)
+  const [editSmartFilters, setEditSmartFilters] = useState<SmartFilters>(EMPTY_SMART_FILTERS)
+  const [isSavingRules, setIsSavingRules] = useState(false)
 
   const fetchCollection = useCallback(async () => {
     try {
@@ -72,6 +90,9 @@ function CollectionDetailContent({ id }: { id: string }) {
         setCollection(data.collection)
         setEditName(data.collection.name)
         setEditColor(data.collection.color || '#6b7280')
+        if (data.collection.smartFilters) {
+          setEditSmartFilters(data.collection.smartFilters)
+        }
       }
       if (data.books) {
         setBooks(data.books)
@@ -103,6 +124,30 @@ function CollectionDetailContent({ id }: { id: string }) {
       fetchCollection()
     } catch {
       addToast(t('updateFailed'), 'error')
+    }
+  }
+
+  const handleSaveRules = async () => {
+    const validRules = editSmartFilters.rules.filter((r) => r.value !== '')
+    if (validRules.length === 0) return
+
+    setIsSavingRules(true)
+    try {
+      await fetch(`${API_URL}/api/collections/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          smartFilters: { ...editSmartFilters, rules: validRules },
+        }),
+      })
+      addToast(t('updated'), 'success')
+      setIsEditingRules(false)
+      fetchCollection()
+    } catch {
+      addToast(t('updateFailed'), 'error')
+    } finally {
+      setIsSavingRules(false)
     }
   }
 
@@ -174,7 +219,6 @@ function CollectionDetailContent({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/dashboard/collections">
@@ -207,7 +251,15 @@ function CollectionDetailContent({ id }: { id: string }) {
               </Button>
             </div>
           ) : (
-            <h1 className="text-2xl font-bold tracking-tight">{collection.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">{collection.name}</h1>
+              {collection.isSmart && (
+                <Badge variant="secondary">
+                  <Sparkles className="mr-1 h-3 w-3" />
+                  {t('smartCollection')}
+                </Badge>
+              )}
+            </div>
           )}
         </div>
         <div className="flex gap-2">
@@ -244,9 +296,49 @@ function CollectionDetailContent({ id }: { id: string }) {
 
       <Badge variant="secondary">{t('booksCount', { count: books.length })}</Badge>
 
-      {/* Books Grid */}
+      {collection.isSmart && (
+        <div className="space-y-3">
+          {isEditingRules ? (
+            <>
+              <SmartCollectionRuleBuilder value={editSmartFilters} onChange={setEditSmartFilters} />
+              <div className="flex gap-2">
+                <Button type="button" size="sm" onClick={handleSaveRules} disabled={isSavingRules}>
+                  {isSavingRules && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+                  {tc('save')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsEditingRules(false)
+                    if (collection.smartFilters) setEditSmartFilters(collection.smartFilters)
+                  }}
+                >
+                  {tc('cancel')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingRules(true)}
+            >
+              <Edit className="mr-1 h-4 w-4" />
+              {t('smartRules.editRules')}
+            </Button>
+          )}
+        </div>
+      )}
+
       {books.length === 0 ? (
-        <EmptyState icon={Book} title={t('noBooksInCollection')} description={t('addBooksHint')} />
+        <EmptyState
+          icon={Book}
+          title={collection.isSmart ? t('smartRules.noMatchingBooks') : t('noBooksInCollection')}
+          description={collection.isSmart ? t('smartRules.adjustRulesHint') : t('addBooksHint')}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {books.map(({ book }) => {
@@ -276,19 +368,23 @@ function CollectionDetailContent({ id }: { id: string }) {
                       >
                         {book.title}
                       </Link>
-                      <p className="truncate text-sm text-muted-foreground">{book.author}</p>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {book.authorNames || ''}
+                      </p>
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{book.pageCount ? `${book.pageCount} ${tc('pages')}` : ''}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={() => handleRemoveBook(book.id)}
-                        title={t('removeBook')}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      {!collection.isSmart && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                          onClick={() => handleRemoveBook(book.id)}
+                          title={t('removeBook')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
