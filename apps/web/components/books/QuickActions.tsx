@@ -12,6 +12,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 import { Edit, Library, Loader2, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
@@ -28,6 +29,7 @@ export function QuickActions({ bookId, onCollectionClick }: QuickActionsProps) {
   const router = useRouter()
   const t = useTranslations('quickActions')
   const tc = useTranslations('common')
+  const { addToast } = useToast()
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
@@ -39,10 +41,13 @@ export function QuickActions({ bookId, onCollectionClick }: QuickActionsProps) {
       })
 
       if (response.ok) {
+        addToast(t('bookDeleted'), 'success')
         router.push('/dashboard/books')
+      } else {
+        addToast(tc('error'), 'error')
       }
-    } catch (err) {
-      console.error('Failed to delete book:', err)
+    } catch {
+      addToast(tc('error'), 'error')
     } finally {
       setIsDeleting(false)
     }

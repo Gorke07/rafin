@@ -175,7 +175,9 @@
     "optional": "opsiyonel",
     "noNotes": "Henüz not eklenmemiş",
     "deleteNote": "Notu sil",
-    "pageLabel": "Sayfa {page}"
+    "pageLabel": "Sayfa {page}",
+    "noteSaved": "Not kaydedildi",
+    "noteDeleted": "Not silindi"
   },
   "quotes": {
     "quotesCount": "Alıntılar ({count})",
@@ -187,7 +189,9 @@
     "cancel": "İptal",
     "noQuotes": "Henüz alıntı eklenmemiş",
     "deleteQuote": "Alıntıyı sil",
-    "pageLabel": "Sayfa {page}"
+    "pageLabel": "Sayfa {page}",
+    "quoteSaved": "Alıntı kaydedildi",
+    "quoteDeleted": "Alıntı silindi"
   },
   "reviews": {
     "title": "Puanım",
@@ -254,7 +258,8 @@
     "confirmDelete": "Emin misiniz?",
     "confirmDeleteDescription": "Bu kitap kalıcı olarak silinecek. Bu işlem geri alınamaz.",
     "yesDelete": "Evet, Sil",
-    "deleteBook": "Sil"
+    "deleteBook": "Sil",
+    "bookDeleted": "Kitap silindi"
   },
   "collections": {
     "title": "Koleksiyonlar",

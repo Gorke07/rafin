@@ -175,7 +175,9 @@
     "optional": "optional",
     "noNotes": "No notes added yet",
     "deleteNote": "Delete note",
-    "pageLabel": "Page {page}"
+    "pageLabel": "Page {page}",
+    "noteSaved": "Note saved",
+    "noteDeleted": "Note deleted"
   },
   "quotes": {
     "quotesCount": "Quotes ({count})",
@@ -187,7 +189,9 @@
     "cancel": "Cancel",
     "noQuotes": "No quotes added yet",
     "deleteQuote": "Delete quote",
-    "pageLabel": "Page {page}"
+    "pageLabel": "Page {page}",
+    "quoteSaved": "Quote saved",
+    "quoteDeleted": "Quote deleted"
   },
   "reviews": {
     "title": "My Rating",
@@ -254,7 +258,8 @@
     "confirmDelete": "Are you sure?",
     "confirmDeleteDescription": "This book will be permanently deleted. This action cannot be undone.",
     "yesDelete": "Yes, Delete",
-    "deleteBook": "Delete"
+    "deleteBook": "Delete",
+    "bookDeleted": "Book deleted"
   },
   "collections": {
     "title": "Collections",

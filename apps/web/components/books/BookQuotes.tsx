@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/utils'
 import { Loader2, Plus, Quote, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -24,6 +25,8 @@ interface BookQuotesProps {
 
 export function BookQuotes({ bookId }: BookQuotesProps) {
   const t = useTranslations('quotes')
+  const tc = useTranslations('common')
+  const { addToast } = useToast()
   const [quotes, setQuotes] = useState<QuoteItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -69,9 +72,12 @@ export function BookQuotes({ bookId }: BookQuotesProps) {
         setNewPageNumber('')
         setShowForm(false)
         fetchQuotes()
+        addToast(t('quoteSaved'), 'success')
+      } else {
+        addToast(tc('error'), 'error')
       }
-    } catch (err) {
-      console.error('Failed to add quote:', err)
+    } catch {
+      addToast(tc('error'), 'error')
     } finally {
       setIsSaving(false)
     }
@@ -84,8 +90,9 @@ export function BookQuotes({ bookId }: BookQuotesProps) {
         credentials: 'include',
       })
       setQuotes((prev) => prev.filter((q) => q.id !== quoteId))
-    } catch (err) {
-      console.error('Failed to delete quote:', err)
+      addToast(t('quoteDeleted'), 'success')
+    } catch {
+      addToast(tc('error'), 'error')
     }
   }
 

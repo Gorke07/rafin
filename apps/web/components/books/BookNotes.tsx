@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/utils'
 import { Loader2, MessageSquare, Plus, Trash2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -22,6 +24,9 @@ interface BookNotesProps {
 }
 
 export function BookNotes({ bookId }: BookNotesProps) {
+  const t = useTranslations('bookNotes')
+  const tc = useTranslations('common')
+  const { addToast } = useToast()
   const [notes, setNotes] = useState<Note[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -67,9 +72,12 @@ export function BookNotes({ bookId }: BookNotesProps) {
         setNewPageNumber('')
         setShowForm(false)
         fetchNotes()
+        addToast(t('noteSaved'), 'success')
+      } else {
+        addToast(tc('error'), 'error')
       }
-    } catch (err) {
-      console.error('Failed to add note:', err)
+    } catch {
+      addToast(tc('error'), 'error')
     } finally {
       setIsSaving(false)
     }
@@ -82,8 +90,9 @@ export function BookNotes({ bookId }: BookNotesProps) {
         credentials: 'include',
       })
       setNotes((prev) => prev.filter((n) => n.id !== noteId))
-    } catch (err) {
-      console.error('Failed to delete note:', err)
+      addToast(t('noteDeleted'), 'success')
+    } catch {
+      addToast(tc('error'), 'error')
     }
   }
 
@@ -100,11 +109,11 @@ export function BookNotes({ bookId }: BookNotesProps) {
       <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-2 font-semibold">
           <MessageSquare className="h-5 w-5" />
-          Notlar ({notes.length})
+          {t('notesCount', { count: notes.length })}
         </h3>
         <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(!showForm)}>
           <Plus className="mr-1 h-4 w-4" />
-          Not Ekle
+          {t('addNote')}
         </Button>
       </div>
 
@@ -113,19 +122,19 @@ export function BookNotes({ bookId }: BookNotesProps) {
           <Textarea
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
-            placeholder="Notunuzu yazın..."
+            placeholder={t('writeNote')}
             rows={3}
           />
           <div className="flex items-end gap-3">
             <div className="w-32">
-              <Label htmlFor="notePageNumber">Sayfa No</Label>
+              <Label htmlFor="notePageNumber">{t('pageNumber')}</Label>
               <Input
                 id="notePageNumber"
                 type="number"
                 min="1"
                 value={newPageNumber}
                 onChange={(e) => setNewPageNumber(e.target.value)}
-                placeholder="opsiyonel"
+                placeholder={t('optional')}
               />
             </div>
             <div className="flex gap-2">
@@ -136,7 +145,7 @@ export function BookNotes({ bookId }: BookNotesProps) {
                 disabled={isSaving || !newNote.trim()}
               >
                 {isSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-                Kaydet
+                {tc('save')}
               </Button>
               <Button
                 type="button"
@@ -148,7 +157,7 @@ export function BookNotes({ bookId }: BookNotesProps) {
                   setNewPageNumber('')
                 }}
               >
-                İptal
+                {tc('cancel')}
               </Button>
             </div>
           </div>
@@ -156,7 +165,7 @@ export function BookNotes({ bookId }: BookNotesProps) {
       )}
 
       {notes.length === 0 ? (
-        <p className="py-4 text-center text-sm text-muted-foreground">Henüz not eklenmemiş</p>
+        <p className="py-4 text-center text-sm text-muted-foreground">{t('noNotes')}</p>
       ) : (
         <div className="space-y-3">
           {notes.map((note) => (
@@ -167,14 +176,14 @@ export function BookNotes({ bookId }: BookNotesProps) {
                   type="button"
                   onClick={() => handleDeleteNote(note.id)}
                   className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                  aria-label="Notu sil"
+                  aria-label={t('deleteNote')}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
               <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                 <span>{formatDate(note.createdAt)}</span>
-                {note.pageNumber && <span>Sayfa {note.pageNumber}</span>}
+                {note.pageNumber && <span>{t('pageLabel', { page: note.pageNumber })}</span>}
               </div>
             </div>
           ))}
