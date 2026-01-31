@@ -425,7 +425,18 @@
     "importComplete": "Import Complete",
     "importTotal": "Total",
     "importImported": "Imported",
-    "importSkipped": "Skipped"
+    "importSkipped": "Skipped",
+    "readingGoal": "Reading Goal",
+    "readingGoalDescription": "Set a yearly reading target to track your progress",
+    "targetBooks": "Target Books",
+    "booksPerYear": "books per year",
+    "setGoal": "Set Goal",
+    "goalSaved": "Reading goal saved",
+    "goalRemoved": "Reading goal removed",
+    "removeGoal": "Remove Goal",
+    "goalProgress": "{read} of {target} books",
+    "noGoalSet": "No reading goal set",
+    "setReadingGoal": "Set a Goal"
   },
   "authors": {
     "title": "Authors",

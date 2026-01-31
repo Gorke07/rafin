@@ -1,6 +1,7 @@
 'use client'
 
 import { PageHeader } from '@/components/dashboard/page-header'
+import { ReadingGoalSettings } from '@/components/dashboard/reading-goal'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,6 +25,7 @@ import {
   Moon,
   Palette,
   Sun,
+  Target,
   Upload,
   User,
 } from 'lucide-react'
@@ -513,6 +515,14 @@ export default function SettingsPage() {
           <ThemeSection />
         </SettingsCard>
       </div>
+
+      <SettingsCard
+        icon={Target}
+        title={t('readingGoal')}
+        description={t('readingGoalDescription')}
+      >
+        <ReadingGoalSettings />
+      </SettingsCard>
 
       <SettingsCard
         icon={Download}

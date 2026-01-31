@@ -14,6 +14,7 @@ import { importRoutes } from './routes/import'
 import { locationRoutes } from './routes/locations'
 import { publisherRoutes } from './routes/publishers'
 import { quotesRoutes } from './routes/quotes'
+import { readingGoalRoutes } from './routes/reading-goals'
 import { reviewsRoutes } from './routes/reviews'
 import { setupRoutes } from './routes/setup'
 import { statsRoutes } from './routes/stats'
@@ -50,6 +51,7 @@ const app = new Elysia()
   .use(publisherRoutes)
   .use(quotesRoutes)
   .use(reviewsRoutes)
+  .use(readingGoalRoutes)
   .use(importRoutes)
   .use(uploadRoutes)
   .use(userSettingsRoutes)

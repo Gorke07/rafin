@@ -425,7 +425,18 @@
     "importComplete": "İçe Aktarma Tamamlandı",
     "importTotal": "Toplam",
     "importImported": "İçe Aktarılan",
-    "importSkipped": "Atlanan"
+    "importSkipped": "Atlanan",
+    "readingGoal": "Okuma Hedefi",
+    "readingGoalDescription": "İlerlemenizi takip etmek için yıllık okuma hedefi belirleyin",
+    "targetBooks": "Hedef Kitap",
+    "booksPerYear": "kitap / yıl",
+    "setGoal": "Hedef Belirle",
+    "goalSaved": "Okuma hedefi kaydedildi",
+    "goalRemoved": "Okuma hedefi kaldırıldı",
+    "removeGoal": "Hedefi Kaldır",
+    "goalProgress": "{target} kitaptan {read} tamamlandı",
+    "noGoalSet": "Okuma hedefi belirlenmemiş",
+    "setReadingGoal": "Hedef Belirle"
   },
   "authors": {
     "title": "Yazarlar",

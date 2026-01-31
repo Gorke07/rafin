@@ -3,6 +3,7 @@
 import { BookCoverPlaceholder } from '@/components/books/BookCoverPlaceholder'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { ReadingCharts } from '@/components/dashboard/reading-charts'
+import { ReadingGoalWidget } from '@/components/dashboard/reading-goal'
 import { StatCard, StatCardSkeleton } from '@/components/dashboard/stat-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -244,6 +245,10 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <ReadingGoalWidget />
       </div>
 
       {recentlyViewed.length > 0 && (
