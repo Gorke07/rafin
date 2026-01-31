@@ -23,7 +23,7 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
   .get(
     '/',
     async ({ query }) => {
-      const { search, limit = 50, offset = 0, categoryId, status } = query
+      const { search, limit = 24, offset = 0, categoryId, status } = query
 
       const conditions = [isNull(books.deletedAt)]
 
@@ -47,13 +47,19 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         conditions.push(inArray(books.id, bookIdsWithStatus))
       }
 
+      const whereClause = and(...conditions)
+
       const result = await db
         .select()
         .from(books)
-        .where(and(...conditions))
+        .where(whereClause)
         .orderBy(desc(books.createdAt))
         .limit(Number(limit))
         .offset(Number(offset))
+
+      const allMatchingIds = await db.select({ id: books.id }).from(books).where(whereClause)
+
+      const total = allMatchingIds.length
 
       const booksWithAuthors = await Promise.all(
         result.map(async (book) => {
@@ -71,7 +77,7 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
         }),
       )
 
-      return { books: booksWithAuthors }
+      return { books: booksWithAuthors, total, limit: Number(limit), offset: Number(offset) }
     },
     {
       query: t.Object({
