@@ -6,22 +6,39 @@ import type { BookFilterValues } from '@/components/books/BookFilters'
 import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
 import { EmptyState } from '@/components/dashboard/empty-state'
 import { PageHeader } from '@/components/dashboard/page-header'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import { Input } from '@/components/ui/input'
 import { PaginationControls } from '@/components/ui/pagination-controls'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import {
   ArrowUpDown,
   BookOpen,
+  CheckSquare,
   ChevronDown,
   ChevronUp,
   LayoutGrid,
   List,
+  Loader2,
   Plus,
   Search,
+  Square,
+  Trash2,
+  X,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -55,6 +72,8 @@ function getCoverSrc(book: Book): string | null {
 
 export default function BooksPage() {
   const t = useTranslations('books')
+  const tc = useTranslations('common')
+  const { addToast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [books, setBooks] = useState<Book[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -75,6 +94,11 @@ export default function BooksPage() {
     return 24
   })
   const [total, setTotal] = useState(0)
+
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [isSelectMode, setIsSelectMode] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const fetchBooks = useCallback(async () => {
     setIsLoading(true)
@@ -159,6 +183,56 @@ export default function BooksPage() {
     return ((av as number) - (bv as number)) * dir
   })
 
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === sorted.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(sorted.map((b) => b.id)))
+    }
+  }
+
+  const exitSelectMode = () => {
+    setIsSelectMode(false)
+    setSelectedIds(new Set())
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`${API_URL}/api/books/bulk`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      })
+      if (response.ok) {
+        addToast(t('booksDeleted', { count: selectedIds.size }), 'success')
+        exitSelectMode()
+        fetchBooks()
+      } else {
+        addToast(tc('error'), 'error')
+      }
+    } catch {
+      addToast(tc('error'), 'error')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -179,7 +253,6 @@ export default function BooksPage() {
         </Button>
       </PageHeader>
 
-      {/* Toolbar: search + view toggle */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <form onSubmit={handleSearch} className="relative max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -192,23 +265,35 @@ export default function BooksPage() {
           />
         </form>
 
-        <div className="flex items-center gap-1 rounded-md border bg-muted/40 p-1">
-          <Button
-            variant={view === 'card' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setView('card')}
-          >
-            <LayoutGrid className="h-4 w-4" />
-            {t('cardView')}
-          </Button>
-          <Button
-            variant={view === 'table' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setView('table')}
-          >
-            <List className="h-4 w-4" />
-            {t('tableView')}
-          </Button>
+        <div className="flex items-center gap-2">
+          {!isLoading && sorted.length > 0 && (
+            <Button
+              variant={isSelectMode ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => (isSelectMode ? exitSelectMode() : setIsSelectMode(true))}
+            >
+              {isSelectMode ? <X className="h-4 w-4" /> : <CheckSquare className="h-4 w-4" />}
+            </Button>
+          )}
+
+          <div className="flex items-center gap-1 rounded-md border bg-muted/40 p-1">
+            <Button
+              variant={view === 'card' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setView('card')}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              {t('cardView')}
+            </Button>
+            <Button
+              variant={view === 'table' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setView('table')}
+            >
+              <List className="h-4 w-4" />
+              {t('tableView')}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -223,7 +308,7 @@ export default function BooksPage() {
           </div>
         ) : (
           <Card>
-            <div className="p-4 space-y-3">
+            <div className="space-y-3 p-4">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-4">
                   <Skeleton className="h-10 w-7 rounded" />
@@ -277,9 +362,23 @@ export default function BooksPage() {
           />
         )
       ) : view === 'card' ? (
-        <CardView books={sorted} />
+        <CardView
+          books={sorted}
+          selectable={isSelectMode}
+          selectedIds={selectedIds}
+          onSelect={toggleSelect}
+        />
       ) : (
-        <TableView books={sorted} sortField={sortField} sortDir={sortDir} onSort={toggleSort} />
+        <TableView
+          books={sorted}
+          sortField={sortField}
+          sortDir={sortDir}
+          onSort={toggleSort}
+          selectable={isSelectMode}
+          selectedIds={selectedIds}
+          onSelect={toggleSelect}
+          onSelectAll={toggleSelectAll}
+        />
       )}
 
       {!isLoading && total > 0 && (
@@ -291,15 +390,73 @@ export default function BooksPage() {
           onPageSizeChange={setPageSize}
         />
       )}
+
+      {isSelectMode && selectedIds.size > 0 && (
+        <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center">
+          <div className="flex items-center gap-3 rounded-xl border bg-card px-5 py-3 shadow-lg">
+            <span className="text-sm font-medium">
+              {t('selected', { count: selectedIds.size })}
+            </span>
+            <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+              {selectedIds.size === sorted.length ? (
+                <>
+                  <Square className="mr-1 h-4 w-4" />
+                  {t('deselectAll')}
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="mr-1 h-4 w-4" />
+                  {t('selectAll')}
+                </>
+              )}
+            </Button>
+            <Button variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)}>
+              <Trash2 className="mr-1 h-4 w-4" />
+              {t('bulkDelete')}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={exitSelectMode}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tc('confirm')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('bulkDeleteConfirm', { count: selectedIds.size })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              {tc('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
 
-/* ────────────────────────────────────────────
-   Card View
-   ──────────────────────────────────────────── */
-
-function CardView({ books }: { books: Book[] }) {
+function CardView({
+  books,
+  selectable,
+  selectedIds,
+  onSelect,
+}: {
+  books: Book[]
+  selectable: boolean
+  selectedIds: Set<number>
+  onSelect: (id: number) => void
+}) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {books.map((book) => (
@@ -314,15 +471,14 @@ function CardView({ books }: { books: Book[] }) {
             publishedYear: book.publishedYear,
             pageCount: book.pageCount,
           }}
+          selectable={selectable}
+          selected={selectedIds.has(book.id)}
+          onSelect={onSelect}
         />
       ))}
     </div>
   )
 }
-
-/* ────────────────────────────────────────────
-   Table View
-   ──────────────────────────────────────────── */
 
 function SortIcon({
   field,
@@ -348,11 +504,19 @@ function TableView({
   sortField,
   sortDir,
   onSort,
+  selectable,
+  selectedIds,
+  onSelect,
+  onSelectAll,
 }: {
   books: Book[]
   sortField: SortField
   sortDir: SortDir
   onSort: (f: SortField) => void
+  selectable: boolean
+  selectedIds: Set<number>
+  onSelect: (id: number) => void
+  onSelectAll: () => void
 }) {
   const t = useTranslations('books')
   const thClass =
@@ -364,6 +528,14 @@ function TableView({
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/40">
             <tr>
+              {selectable && (
+                <th className="w-10 px-4 py-3">
+                  <Checkbox
+                    checked={selectedIds.size === books.length && books.length > 0}
+                    onCheckedChange={onSelectAll}
+                  />
+                </th>
+              )}
               <th className="w-12 px-4 py-3" />
               <th className={thClass}>
                 <button
@@ -411,8 +583,20 @@ function TableView({
           <tbody className="divide-y">
             {books.map((book) => {
               const cover = getCoverSrc(book)
+              const isSelected = selectedIds.has(book.id)
               return (
-                <tr key={book.id} className="transition-colors hover:bg-muted/30">
+                <tr
+                  key={book.id}
+                  className={cn(
+                    'transition-colors hover:bg-muted/30',
+                    isSelected && 'bg-primary/5',
+                  )}
+                >
+                  {selectable && (
+                    <td className="px-4 py-2">
+                      <Checkbox checked={isSelected} onCheckedChange={() => onSelect(book.id)} />
+                    </td>
+                  )}
                   <td className="px-4 py-2">
                     {cover ? (
                       <HoverCard openDelay={200} closeDelay={0}>

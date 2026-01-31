@@ -418,6 +418,26 @@ export const bookRoutes = new Elysia({ prefix: '/api/books' })
   )
 
   .delete(
+    '/bulk',
+    async ({ body }) => {
+      const { ids } = body
+      if (ids.length === 0) return { success: true, deleted: 0 }
+
+      await db
+        .update(books)
+        .set({ deletedAt: new Date() })
+        .where(and(inArray(books.id, ids), isNull(books.deletedAt)))
+
+      return { success: true, deleted: ids.length }
+    },
+    {
+      body: t.Object({
+        ids: t.Array(t.Number(), { minItems: 1 }),
+      }),
+    },
+  )
+
+  .delete(
     '/:id',
     async ({ params, set }) => {
       const existing = await db
