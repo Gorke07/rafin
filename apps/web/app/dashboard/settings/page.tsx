@@ -13,7 +13,20 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
-import { Download, Globe, Loader2, Lock, Monitor, Moon, Palette, Sun, User } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  Globe,
+  Loader2,
+  Lock,
+  Monitor,
+  Moon,
+  Palette,
+  Sun,
+  Upload,
+  User,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
@@ -329,6 +342,153 @@ function ExportSection() {
   )
 }
 
+interface ImportResult {
+  total: number
+  imported: number
+  skipped: number
+  errors: string[]
+}
+
+function ImportSection() {
+  const t = useTranslations('settings')
+  const { addToast } = useToast()
+  const [importing, setImporting] = useState(false)
+  const [enrichISBN, setEnrichISBN] = useState(false)
+  const [result, setResult] = useState<ImportResult | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setSelectedFile(file)
+    setResult(null)
+  }
+
+  const handleImport = async () => {
+    if (!selectedFile) return
+
+    setImporting(true)
+    setResult(null)
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      formData.append('enrichWithISBN', String(enrichISBN))
+
+      const res = await fetch(`${API_URL}/api/import/goodreads`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Import failed')
+      }
+
+      const data = await res.json()
+      setResult(data.result)
+      addToast(t('importSuccess', { count: data.result.imported }), 'success')
+      setSelectedFile(null)
+      const input = document.getElementById('csv-file') as HTMLInputElement
+      if (input) input.value = ''
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Import failed'
+      addToast(message, 'error')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">{t('importDescription')}</p>
+
+      <div className="space-y-3">
+        <div>
+          <Label htmlFor="csv-file">{t('importSelectFile')}</Label>
+          <Input
+            id="csv-file"
+            type="file"
+            accept=".csv"
+            onChange={handleFileChange}
+            disabled={importing}
+            className="mt-1"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="enrich-isbn"
+            checked={enrichISBN}
+            onChange={(e) => setEnrichISBN(e.target.checked)}
+            disabled={importing}
+            className="h-4 w-4 rounded border-input"
+          />
+          <Label htmlFor="enrich-isbn" className="text-sm font-normal">
+            {t('importEnrichISBN')}
+          </Label>
+        </div>
+
+        {enrichISBN && <p className="text-xs text-muted-foreground">{t('importEnrichWarning')}</p>}
+
+        <Button onClick={handleImport} disabled={importing || !selectedFile}>
+          {importing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t('importImporting')}
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4" />
+              {t('importStart')}
+            </>
+          )}
+        </Button>
+      </div>
+
+      {result && (
+        <Card>
+          <CardContent className="space-y-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <span className="font-semibold">{t('importComplete')}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">{t('importTotal')}</p>
+                <p className="text-lg font-semibold">{result.total}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">{t('importImported')}</p>
+                <p className="text-lg font-semibold text-green-600">{result.imported}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">{t('importSkipped')}</p>
+                <p className="text-lg font-semibold text-amber-600">{result.skipped}</p>
+              </div>
+            </div>
+            {result.errors.length > 0 && (
+              <div className="mt-2 max-h-32 overflow-y-auto rounded-md bg-muted p-3">
+                {result.errors.slice(0, 20).map((err, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <AlertCircle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
+                    <span>{err}</span>
+                  </div>
+                ))}
+                {result.errors.length > 20 && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    +{result.errors.length - 20} more...
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const t = useTranslations('settings')
 
@@ -360,6 +520,10 @@ export default function SettingsPage() {
         description={t('dataExportDescription')}
       >
         <ExportSection />
+      </SettingsCard>
+
+      <SettingsCard icon={Upload} title={t('dataImport')} description={t('dataImportDescription')}>
+        <ImportSection />
       </SettingsCard>
     </div>
   )

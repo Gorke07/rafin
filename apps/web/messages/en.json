@@ -392,7 +392,20 @@
     "dataExportDescription": "Download all your library data as a JSON file",
     "exportData": "Export Data",
     "exporting": "Exporting...",
-    "exportError": "Failed to export data"
+    "exportError": "Failed to export data",
+    "dataImport": "Data Import",
+    "dataImportDescription": "Import books from Goodreads CSV export",
+    "importDescription": "Export your Goodreads library as CSV (My Books → Import/Export → Export Library) and upload it here.",
+    "importSelectFile": "CSV File",
+    "importEnrichISBN": "Enrich with ISBN lookup (covers, descriptions, language)",
+    "importEnrichWarning": "ISBN enrichment makes the import slower but adds cover images and descriptions from online sources.",
+    "importStart": "Import",
+    "importImporting": "Importing...",
+    "importSuccess": "{count} books imported successfully",
+    "importComplete": "Import Complete",
+    "importTotal": "Total",
+    "importImported": "Imported",
+    "importSkipped": "Skipped"
   },
   "authors": {
     "title": "Authors",

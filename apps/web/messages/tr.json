@@ -392,7 +392,20 @@
     "dataExportDescription": "Tüm kütüphane verilerinizi JSON dosyası olarak indirin",
     "exportData": "Verileri Dışa Aktar",
     "exporting": "Dışa aktarılıyor...",
-    "exportError": "Veri dışa aktarılırken hata oluştu"
+    "exportError": "Veri dışa aktarılırken hata oluştu",
+    "dataImport": "Veri İçe Aktarma",
+    "dataImportDescription": "Goodreads CSV dışa aktarmasından kitap içe aktarın",
+    "importDescription": "Goodreads kütüphanenizi CSV olarak dışa aktarın (Kitaplarım → İçe/Dışa Aktar → Kütüphaneyi Dışa Aktar) ve buraya yükleyin.",
+    "importSelectFile": "CSV Dosyası",
+    "importEnrichISBN": "ISBN aramasıyla zenginleştir (kapak, açıklama, dil)",
+    "importEnrichWarning": "ISBN zenginleştirme içe aktarmayı yavaşlatır ancak çevrimiçi kaynaklardan kapak resimleri ve açıklamalar ekler.",
+    "importStart": "İçe Aktar",
+    "importImporting": "İçe aktarılıyor...",
+    "importSuccess": "{count} kitap başarıyla içe aktarıldı",
+    "importComplete": "İçe Aktarma Tamamlandı",
+    "importTotal": "Toplam",
+    "importImported": "İçe Aktarılan",
+    "importSkipped": "Atlanan"
   },
   "authors": {
     "title": "Yazarlar",
