@@ -18,6 +18,24 @@ bun run db:migrate
 bun run dev
 ```
 
+## Docker
+
+```bash
+# Build images
+docker build --target runner-api -t rafin-api .
+docker build --target runner-web --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001 -t rafin-web .
+
+# Run full stack (postgres + api + web)
+docker compose up -d
+```
+
+Images are published to GitHub Container Registry on push to `main`:
+
+```bash
+docker pull ghcr.io/OWNER/rafin-api:latest
+docker pull ghcr.io/OWNER/rafin-web:latest
+```
+
 ## Tech Stack
 
 - **Runtime:** Bun
