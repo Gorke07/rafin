@@ -1,5 +1,5 @@
-import { authors, books, db, locations, publishers, userBooks } from '@rafin/db'
-import { count, eq, isNull } from 'drizzle-orm'
+import { authors, books, db, locations, publishers, reviews, userBooks } from '@rafin/db'
+import { and, avg, count, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 
 export const statsRoutes = new Elysia({ prefix: '/api/stats' })
@@ -70,5 +70,78 @@ export const statsRoutes = new Elysia({ prefix: '/api/stats' })
     return {
       recentBooks,
       currentlyReading: reading,
+    }
+  })
+
+  .get('/charts', async () => {
+    const twelveMonthsAgo = new Date()
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11)
+    twelveMonthsAgo.setDate(1)
+    twelveMonthsAgo.setHours(0, 0, 0, 0)
+
+    const monthlyCompleted = await db
+      .select({
+        month: sql<string>`to_char(${userBooks.finishedAt}, 'YYYY-MM')`,
+        count: count(),
+      })
+      .from(userBooks)
+      .where(
+        and(
+          eq(userBooks.status, 'completed'),
+          isNotNull(userBooks.finishedAt),
+          gte(userBooks.finishedAt, twelveMonthsAgo),
+        ),
+      )
+      .groupBy(sql`to_char(${userBooks.finishedAt}, 'YYYY-MM')`)
+      .orderBy(sql`to_char(${userBooks.finishedAt}, 'YYYY-MM')`)
+
+    const statusCounts = await db
+      .select({
+        status: userBooks.status,
+        count: count(),
+      })
+      .from(userBooks)
+      .groupBy(userBooks.status)
+
+    const readingStatus: Record<string, number> = { tbr: 0, reading: 0, completed: 0, dnf: 0 }
+    for (const row of statusCounts) {
+      if (row.status in readingStatus) {
+        readingStatus[row.status] = row.count
+      }
+    }
+
+    const monthlyAdded = await db
+      .select({
+        month: sql<string>`to_char(${books.createdAt}, 'YYYY-MM')`,
+        count: count(),
+      })
+      .from(books)
+      .where(and(isNull(books.deletedAt), gte(books.createdAt, twelveMonthsAgo)))
+      .groupBy(sql`to_char(${books.createdAt}, 'YYYY-MM')`)
+      .orderBy(sql`to_char(${books.createdAt}, 'YYYY-MM')`)
+
+    const avgRatingResult = await db.select({ avg: avg(reviews.rating) }).from(reviews)
+    const averageRating = avgRatingResult[0]?.avg
+      ? Number.parseFloat(String(avgRatingResult[0].avg))
+      : null
+
+    const now = new Date()
+    const months: string[] = []
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+    }
+
+    const completedMap = new Map(monthlyCompleted.map((r) => [r.month, r.count]))
+    const addedMap = new Map(monthlyAdded.map((r) => [r.month, r.count]))
+
+    const monthlyReading = months.map((m) => ({ month: m, completed: completedMap.get(m) ?? 0 }))
+    const monthlyBooksAdded = months.map((m) => ({ month: m, count: addedMap.get(m) ?? 0 }))
+
+    return {
+      monthlyReading,
+      readingStatus,
+      monthlyBooksAdded,
+      averageRating,
     }
   })
