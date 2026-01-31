@@ -22,6 +22,8 @@ jobs:
             image: rafin-api
           - target: runner-web
             image: rafin-web
+          - target: runner
+            image: rafin
 
     steps:
       - name: Checkout

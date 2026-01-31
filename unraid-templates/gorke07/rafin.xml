@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>rafin</Name>
+  <Repository>ghcr.io/gorke07/rafin:latest</Repository>
+  <Registry>https://github.com/Gorke07/rafin/pkgs/container/rafin</Registry>
+  <Branch>
+    <Tag>latest</Tag>
+    <TagDescription>Latest stable release</TagDescription>
+  </Branch>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/Gorke07/rafin/issues</Support>
+  <Project>https://github.com/Gorke07/rafin</Project>
+  <Overview>Rafin - Self-hosted home library tracker. Manage books, scan barcodes, track reading progress, and organize your collection. Requires a PostgreSQL database.</Overview>
+  <Category>HomeAutomation: Tools: Productivity:</Category>
+  <WebUI>http://[IP]:[PORT:3000]</WebUI>
+  <Icon>https://raw.githubusercontent.com/Gorke07/rafin/main/icon.png</Icon>
+  <Description>Rafin - Self-hosted home library tracking system. Browse your library, scan ISBN barcodes, track reading progress, manage locations and collections. Built with ElysiaJS and Next.js.</Description>
+  <ExtraParams>--restart=unless-stopped</ExtraParams>
+
+  <Config Name="Web Port" Target="3000" Default="3000" Mode="tcp" Description="Web interface port" Type="Port" Display="always" Required="true" Mask="false"/>
+
+  <Config Name="API Port" Target="3001" Default="3001" Mode="tcp" Description="API port" Type="Port" Display="always" Required="true" Mask="false"/>
+
+  <Config Name="Database URL" Target="DATABASE_URL" Default="postgresql://rafin:PASSWORD@UNRAID_IP:5432/rafin" Mode="" Description="PostgreSQL connection string. Set host, port, and password to match your PostgreSQL instance." Type="Variable" Display="always" Required="true" Mask="false"/>
+
+  <Config Name="Auth Secret" Target="BETTER_AUTH_SECRET" Default="" Mode="" Description="Secret key for session auth. Generate with: openssl rand -hex 32" Type="Variable" Display="always" Required="true" Mask="true"/>
+
+  <Config Name="Auth URL" Target="BETTER_AUTH_URL" Default="http://UNRAID_IP:3001" Mode="" Description="Public URL of the API (used for auth callbacks)" Type="Variable" Display="always" Required="true" Mask="false"/>
+
+  <Config Name="API URL" Target="NEXT_PUBLIC_API_URL" Default="http://UNRAID_IP:3001" Mode="" Description="API URL as seen by the browser. Usually same as Auth URL." Type="Variable" Display="always" Required="true" Mask="false"/>
+
+  <Config Name="API Host" Target="API_HOST" Default="0.0.0.0" Mode="" Description="API listen address" Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="API Port (internal)" Target="API_PORT" Default="3001" Mode="" Description="Internal API port (should match mapped API port)" Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="Uploads" Target="/app/apps/api/uploads" Default="/mnt/user/appdata/rafin/uploads" Mode="rw" Description="Book cover uploads storage" Type="Path" Display="always" Required="true" Mask="false"/>
+</Container>

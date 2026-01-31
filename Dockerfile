@@ -92,3 +92,48 @@ ENV PORT=3000
 EXPOSE 3000
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["bun", "run", "apps/web/server.js"]
+
+# ============================================
+# Stage 6: runner — Combined API + Web
+# ============================================
+FROM oven/bun:1.3-alpine AS runner
+
+RUN apk add --no-cache vips
+
+WORKDIR /app
+
+COPY package.json bun.lock turbo.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY packages/db/package.json packages/db/package.json
+COPY packages/shared/package.json packages/shared/package.json
+COPY packages/ui/package.json packages/ui/package.json
+
+RUN bun install --frozen-lockfile --production
+
+# Workspace packages (Bun loads .ts directly)
+COPY packages/db/src packages/db/src
+COPY packages/db/drizzle packages/db/drizzle
+COPY packages/db/drizzle.config.ts packages/db/drizzle.config.ts
+COPY packages/shared/src packages/shared/src
+COPY packages/ui/src packages/ui/src
+
+# API
+COPY --from=build-api /app/apps/api/dist apps/api/dist
+RUN mkdir -p apps/api/uploads
+
+# Web
+COPY --from=build-web /app/apps/web/.next/standalone ./
+COPY --from=build-web /app/apps/web/.next/static apps/web/.next/static
+COPY --from=build-web /app/apps/web/public apps/web/public
+
+COPY apps/web/entrypoint.sh /app/entrypoint.sh
+COPY start.sh /app/start.sh
+RUN chmod +x /app/entrypoint.sh /app/start.sh
+
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+
+EXPOSE 3000 3001
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["/app/start.sh"]
