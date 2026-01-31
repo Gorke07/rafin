@@ -55,7 +55,7 @@ sql.unsafe(\"SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'\").then(asyn
 
 # Run migrations (push schema to database)
 echo "[rafin] Pushing database schema..."
-cd /app && bunx drizzle-kit push --force --config=packages/db/drizzle.config.ts
+cd /app/packages/db && bunx drizzle-kit push --force
 echo "[rafin] Database schema is up to date"
 
 # Start API in background (cwd must be apps/api for relative paths)
