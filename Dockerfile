@@ -63,8 +63,9 @@ COPY --from=build-api /app/apps/api/dist apps/api/dist
 
 RUN mkdir -p apps/api/uploads
 
+WORKDIR /app/apps/api
 EXPOSE 3001
-CMD ["bun", "run", "apps/api/dist/index.js"]
+CMD ["bun", "run", "dist/index.js"]
 
 # ============================================
 # Stage 5: runner-web — Minimal Bun runtime

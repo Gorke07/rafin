@@ -1,12 +1,12 @@
 #!/bin/sh
 set -e
 
-# Start API in background
-bun run apps/api/dist/index.js &
+# Start API in background (cwd must be apps/api for relative paths)
+cd /app/apps/api && bun run dist/index.js &
 API_PID=$!
 
-# Start Web in foreground
-bun run apps/web/server.js &
+# Start Web
+cd /app && bun run apps/web/server.js &
 WEB_PID=$!
 
 # If either process exits, stop both
