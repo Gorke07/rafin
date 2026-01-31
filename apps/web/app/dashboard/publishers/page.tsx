@@ -1,18 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { Building2, Loader2, Plus, Search, X } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
-import { PageHeader } from '@/components/dashboard/page-header'
 import { EmptyState } from '@/components/dashboard/empty-state'
+import { PageHeader } from '@/components/dashboard/page-header'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/hooks/use-toast'
+import { Building2, Loader2, Plus, Search, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -35,7 +35,7 @@ export default function PublishersPage() {
   const [newName, setNewName] = useState('')
   const [isCreating, setIsCreating] = useState(false)
 
-  const fetchPublishers = async (q?: string) => {
+  const fetchPublishers = useCallback(async (q?: string) => {
     try {
       const url = q
         ? `${API_URL}/api/publishers?q=${encodeURIComponent(q)}`
@@ -50,11 +50,11 @@ export default function PublishersPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchPublishers()
-  }, [])
+  }, [fetchPublishers])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

@@ -1,27 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import {
-  Plus,
-  Search,
-  BookOpen,
-  LayoutGrid,
-  List,
-  ArrowUpDown,
-  ChevronUp,
-  ChevronDown,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { PageHeader } from '@/components/dashboard/page-header'
-import { EmptyState } from '@/components/dashboard/empty-state'
 import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
+import { EmptyState } from '@/components/dashboard/empty-state'
+import { PageHeader } from '@/components/dashboard/page-header'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
+import {
+  ArrowUpDown,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  LayoutGrid,
+  List,
+  Plus,
+  Search,
+} from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -277,35 +277,45 @@ function TableView({
           <thead className="border-b bg-muted/40">
             <tr>
               <th className="w-12 px-4 py-3" />
-              <th className={thClass} onClick={() => onSort('title')}>
-                <span className="inline-flex items-center gap-1">
+              <th className={thClass}>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1"
+                  onClick={() => onSort('title')}
+                >
                   {t('titleColumn')}
                   <SortIcon field="title" activeField={sortField} dir={sortDir} />
-                </span>
+                </button>
               </th>
-              <th className={thClass} onClick={() => onSort('authorNames')}>
-                <span className="inline-flex items-center gap-1">
+              <th className={thClass}>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1"
+                  onClick={() => onSort('authorNames')}
+                >
                   {t('author')}
                   <SortIcon field="authorNames" activeField={sortField} dir={sortDir} />
-                </span>
+                </button>
               </th>
-              <th
-                className={cn(thClass, 'hidden md:table-cell')}
-                onClick={() => onSort('publishedYear')}
-              >
-                <span className="inline-flex items-center gap-1">
+              <th className={cn(thClass, 'hidden md:table-cell')}>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1"
+                  onClick={() => onSort('publishedYear')}
+                >
                   {t('year')}
                   <SortIcon field="publishedYear" activeField={sortField} dir={sortDir} />
-                </span>
+                </button>
               </th>
-              <th
-                className={cn(thClass, 'hidden lg:table-cell')}
-                onClick={() => onSort('pageCount')}
-              >
-                <span className="inline-flex items-center gap-1">
+              <th className={cn(thClass, 'hidden lg:table-cell')}>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1"
+                  onClick={() => onSort('pageCount')}
+                >
                   {t('pageCount')}
                   <SortIcon field="pageCount" activeField={sortField} dir={sortDir} />
-                </span>
+                </button>
               </th>
               <th className={cn(thClass, 'hidden lg:table-cell')}>{t('isbn')}</th>
             </tr>
@@ -321,19 +331,11 @@ function TableView({
                         <HoverCardTrigger asChild>
                           <Link href={`/dashboard/books/${book.id}`}>
                             <div className="h-10 w-7 overflow-hidden rounded bg-muted">
-                              <img
-                                src={cover}
-                                alt=""
-                                className="h-full w-full object-contain"
-                              />
+                              <img src={cover} alt="" className="h-full w-full object-contain" />
                             </div>
                           </Link>
                         </HoverCardTrigger>
-                        <HoverCardContent
-                          side="right"
-                          align="start"
-                          className="w-auto p-1"
-                        >
+                        <HoverCardContent side="right" align="start" className="w-auto p-1">
                           <img
                             src={cover}
                             alt={book.title}

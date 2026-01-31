@@ -1,6 +1,6 @@
+import { bookNotes, books, db } from '@rafin/db'
+import { and, desc, eq, isNull } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
-import { db, bookNotes, books } from '@rafin/db'
-import { eq, desc, and, isNull } from 'drizzle-orm'
 import { auth } from '../lib/auth'
 
 export const bookNotesRoutes = new Elysia({ prefix: '/api/books' })

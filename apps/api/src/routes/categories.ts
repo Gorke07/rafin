@@ -1,6 +1,6 @@
+import { bookCategories, books, categories, db } from '@rafin/db'
+import { and, desc, eq, isNull } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
-import { db, categories, bookCategories, books } from '@rafin/db'
-import { eq, desc, and, isNull } from 'drizzle-orm'
 
 export const categoryRoutes = new Elysia({ prefix: '/api/categories' })
   // Get all categories
@@ -237,7 +237,7 @@ export const categoryRoutes = new Elysia({ prefix: '/api/categories' })
   // Remove category from book
   .delete(
     '/books/:bookId/:categoryId',
-    async ({ params, set }) => {
+    async ({ params }) => {
       await db
         .delete(bookCategories)
         .where(

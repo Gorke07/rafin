@@ -22,6 +22,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { CoverUpload } from './CoverUpload'
+import type { BookLookupResult } from './ISBNLookup'
 import { ISBNLookup } from './ISBNLookup'
 
 interface Entity {
@@ -241,11 +242,10 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     setFormData((prev) => ({ ...prev, locationId: value ? Number(value) : undefined }))
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleISBNFound = async (book: any) => {
+  const handleISBNFound = async (book: BookLookupResult) => {
     // Auto-create/find author
-    if (book.author && typeof book.author === 'string') {
-      const names = (book.author as string)
+    if (book.author) {
+      const names = book.author
         .split(/[,&]/)
         .map((n) => n.trim())
         .filter(Boolean)
@@ -273,7 +273,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     }
 
     // Auto-create/find publisher
-    if (book.publisher && typeof book.publisher === 'string') {
+    if (book.publisher) {
       try {
         const res = await fetch(`${API_URL}/api/publishers`, {
           method: 'POST',
@@ -296,7 +296,7 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
     setFormData((prev) => ({
       ...prev,
       ...rest,
-      title: prev.title || (rest.title as string) || '',
+      title: prev.title || rest.title || '',
     }))
     addToast(t('bookInfoFilled'), 'success')
   }

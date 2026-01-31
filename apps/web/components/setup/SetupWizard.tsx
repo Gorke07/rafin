@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { StepWelcome } from './StepWelcome'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { StepAccount } from './StepAccount'
 import { StepSummary } from './StepSummary'
+import { StepWelcome } from './StepWelcome'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 

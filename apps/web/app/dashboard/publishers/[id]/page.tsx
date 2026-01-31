@@ -1,16 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Building2, Edit2, ExternalLink, Loader2, Save, Trash2, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +12,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
+import { ArrowLeft, Building2, Edit2, ExternalLink, Loader2, Save, Trash2, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { use, useCallback, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -57,7 +57,7 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
   const [editForm, setEditForm] = useState({ name: '', website: '' })
   const [isSaving, setIsSaving] = useState(false)
 
-  const fetchPublisher = async () => {
+  const fetchPublisher = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/publishers/${id}`, { credentials: 'include' })
       if (response.ok) {
@@ -74,11 +74,11 @@ export default function PublisherDetailPage({ params }: { params: Promise<{ id: 
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [id])
 
   useEffect(() => {
     fetchPublisher()
-  }, [id])
+  }, [fetchPublisher])
 
   const handleSave = async () => {
     if (!editForm.name.trim()) return

@@ -1,13 +1,9 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import {
   BookMarked,
   BookOpen,
@@ -22,6 +18,10 @@ import {
   Settings,
   User,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'sidebar-collapsed'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -176,6 +176,7 @@ export function Sidebar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
+                type="button"
                 onClick={handleLogout}
                 className="flex w-full items-center justify-center rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               >
@@ -186,6 +187,7 @@ export function Sidebar() {
           </Tooltip>
         ) : (
           <button
+            type="button"
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
@@ -227,9 +229,8 @@ export function MobileSidebar() {
   const { handleLogout, logoutLabel } = useLogout()
   const pathname = usePathname()
 
-  // Close on navigation
   useEffect(() => {
-    setMobileOpen(false)
+    if (pathname) setMobileOpen(false)
   }, [pathname, setMobileOpen])
 
   return (
@@ -259,6 +260,7 @@ export function MobileSidebar() {
 
         <div className="border-t p-2">
           <button
+            type="button"
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >

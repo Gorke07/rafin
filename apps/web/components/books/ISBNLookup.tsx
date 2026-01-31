@@ -29,7 +29,7 @@ const BarcodeScanner = dynamic(
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
-interface BookLookupResult {
+export interface BookLookupResult {
   isbn: string
   title: string
   author: string

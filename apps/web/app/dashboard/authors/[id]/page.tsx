@@ -1,17 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Edit2, Loader2, Save, Trash2, User, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,8 +12,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { BookCard, BookCardSkeleton } from '@/components/dashboard/book-card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
+import { ArrowLeft, Edit2, Loader2, Save, Trash2, User, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { use, useCallback, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -59,7 +59,7 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
   const [editForm, setEditForm] = useState({ name: '', bio: '', photoUrl: '' })
   const [isSaving, setIsSaving] = useState(false)
 
-  const fetchAuthor = async () => {
+  const fetchAuthor = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/authors/${id}`, { credentials: 'include' })
       if (response.ok) {
@@ -77,11 +77,11 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [id])
 
   useEffect(() => {
     fetchAuthor()
-  }, [id])
+  }, [fetchAuthor])
 
   const handleSave = async () => {
     if (!editForm.name.trim()) return

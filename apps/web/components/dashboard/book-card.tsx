@@ -1,7 +1,7 @@
-import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BookOpen } from 'lucide-react'
+import Link from 'next/link'
 
 interface BookCardProps {
   book: {

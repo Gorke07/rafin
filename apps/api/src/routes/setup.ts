@@ -1,6 +1,6 @@
-import { Elysia, t } from 'elysia'
 import { db, user } from '@rafin/db'
 import { count } from 'drizzle-orm'
+import { Elysia, t } from 'elysia'
 import { auth } from '../lib/auth'
 
 export const setupRoutes = new Elysia({ prefix: '/api/setup' })

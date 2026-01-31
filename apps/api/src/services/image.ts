@@ -1,7 +1,7 @@
+import { randomUUID } from 'node:crypto'
+import { mkdir } from 'node:fs/promises'
+import { join } from 'node:path'
 import sharp from 'sharp'
-import { randomUUID } from 'crypto'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 
 const UPLOAD_DIR = 'uploads/covers'
 

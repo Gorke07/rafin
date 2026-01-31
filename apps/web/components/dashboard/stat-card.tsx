@@ -1,6 +1,6 @@
-import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import Link from 'next/link'
 
 interface StatCardProps {
   label: string

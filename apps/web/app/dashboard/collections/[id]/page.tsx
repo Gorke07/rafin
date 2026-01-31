@@ -1,15 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Book, Edit, Image as ImageIcon, Trash2, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/dashboard/empty-state'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,8 +12,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { EmptyState } from '@/components/dashboard/empty-state'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
+import { ArrowLeft, Book, Edit, Image as ImageIcon, Trash2, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { use, useCallback, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -62,7 +62,7 @@ function CollectionDetailContent({ id }: { id: string }) {
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState('')
 
-  const fetchCollection = async () => {
+  const fetchCollection = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/collections/${id}`, {
         credentials: 'include',
@@ -81,11 +81,11 @@ function CollectionDetailContent({ id }: { id: string }) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [id])
 
   useEffect(() => {
     fetchCollection()
-  }, [id])
+  }, [fetchCollection])
 
   const handleUpdate = async () => {
     try {

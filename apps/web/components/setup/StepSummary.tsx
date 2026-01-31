@@ -1,7 +1,7 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
 import { ArrowLeft, Check, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import type { SetupData } from './SetupWizard'
 
 interface StepSummaryProps {

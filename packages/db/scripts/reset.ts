@@ -26,7 +26,7 @@ async function reset() {
   // Run drizzle-kit push to recreate schema
   console.log('\nRecreating schema with drizzle-kit push...')
   const proc = Bun.spawn(['bunx', 'drizzle-kit', 'push', '--force'], {
-    cwd: import.meta.dir + '/..',
+    cwd: `${import.meta.dir}/..`,
     stdout: 'inherit',
     stderr: 'inherit',
   })

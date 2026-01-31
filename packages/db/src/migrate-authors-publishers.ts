@@ -1,9 +1,9 @@
 import 'dotenv/config'
+import { eq, isNull, sql } from 'drizzle-orm'
 import { db } from './client'
-import { books } from './schema/books'
 import { authors, bookAuthors } from './schema/authors'
-import { publishers, bookPublishers } from './schema/publishers'
-import { isNull, eq, sql } from 'drizzle-orm'
+import { books } from './schema/books'
+import { bookPublishers, publishers } from './schema/publishers'
 
 async function migrate() {
   console.log('Starting authors/publishers migration...')

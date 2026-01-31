@@ -1,7 +1,7 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
 import { BookOpen } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface StepWelcomeProps {
   onNext: () => void
@@ -26,6 +26,7 @@ export function StepWelcome({ onNext }: StepWelcomeProps) {
       <p className="text-muted-foreground">{t('welcomeDescription')}</p>
 
       <button
+        type="button"
         onClick={onNext}
         className="w-full rounded-md bg-primary py-3 text-primary-foreground hover:bg-primary/90"
       >

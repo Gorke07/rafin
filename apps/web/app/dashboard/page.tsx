@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { BookMarked, BookOpen, Building2, MapPin, TrendingUp, User } from 'lucide-react'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { StatCard, StatCardSkeleton } from '@/components/dashboard/stat-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BookMarked, BookOpen, Building2, MapPin, TrendingUp, User } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -228,11 +228,7 @@ export default function DashboardPage() {
                     >
                       <div className="h-16 w-12 shrink-0 overflow-hidden rounded bg-muted">
                         {src ? (
-                          <img
-                            src={src}
-                            alt={book.title}
-                            className="h-full w-full object-cover"
-                          />
+                          <img src={src} alt={book.title} className="h-full w-full object-cover" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
                             <BookOpen className="h-5 w-5 text-muted-foreground/30" />

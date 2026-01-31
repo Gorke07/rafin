@@ -1,6 +1,6 @@
-import { Elysia, t } from 'elysia'
 import { db, locations } from '@rafin/db'
-import { eq, isNull, asc } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
+import { Elysia, t } from 'elysia'
 
 export const locationRoutes = new Elysia({ prefix: '/api/locations' })
   .get('/', async () => {
@@ -10,11 +10,11 @@ export const locationRoutes = new Elysia({ prefix: '/api/locations' })
     const locationMap = new Map<number, (typeof result)[0] & { children: typeof result }>()
     const roots: ((typeof result)[0] & { children: typeof result })[] = []
 
-    result.forEach((loc) => {
+    for (const loc of result) {
       locationMap.set(loc.id, { ...loc, children: [] })
-    })
+    }
 
-    result.forEach((loc) => {
+    for (const loc of result) {
       const node = locationMap.get(loc.id)!
       if (loc.parentId) {
         const parent = locationMap.get(loc.parentId)
@@ -24,7 +24,7 @@ export const locationRoutes = new Elysia({ prefix: '/api/locations' })
       } else {
         roots.push(node)
       }
-    })
+    }
 
     return { locations: roots, flat: result }
   })

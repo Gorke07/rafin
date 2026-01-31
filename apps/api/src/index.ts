@@ -1,8 +1,9 @@
 import { cors } from '@elysiajs/cors'
 import { staticPlugin } from '@elysiajs/static'
 import { Elysia } from 'elysia'
-import { auth } from './lib/auth'
+import { auth, trustedOrigins } from './lib/auth'
 import { authMiddleware } from './middleware/auth'
+import { rateLimitMiddleware } from './middleware/rate-limit'
 import { authorRoutes } from './routes/authors'
 import { bookLookupRoutes } from './routes/book-lookup'
 import { bookNotesRoutes } from './routes/book-notes'
@@ -20,7 +21,7 @@ import { userSettingsRoutes } from './routes/user-settings'
 const app = new Elysia()
   .use(
     cors({
-      origin: true,
+      origin: trustedOrigins,
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization'],
     }),
@@ -31,6 +32,7 @@ const app = new Elysia()
       prefix: '/uploads',
     }),
   )
+  .use(rateLimitMiddleware)
   .mount(auth.handler)
   .use(setupRoutes)
   .use(bookLookupRoutes)
@@ -48,11 +50,35 @@ const app = new Elysia()
   .use(authMiddleware)
   .get('/', () => ({ message: 'Rafin API is running' }))
   .get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))
+  .onRequest(({ request }) => {
+    const url = new URL(request.url)
+    if (url.pathname !== '/health') {
+      console.log(`[${new Date().toISOString()}] ${request.method} ${url.pathname}`)
+    }
+  })
+  .onError(({ code, error, request, set }) => {
+    const url = new URL(request.url)
+    const message = 'message' in error ? error.message : String(error)
+    console.error(`[${new Date().toISOString()}] ERROR ${request.method} ${url.pathname}:`, message)
+
+    if (code === 'NOT_FOUND') {
+      set.status = 404
+      return { error: 'Not found' }
+    }
+
+    if (code === 'VALIDATION') {
+      set.status = 400
+      return { error: 'Validation failed', details: message }
+    }
+
+    set.status = 500
+    return { error: 'Internal server error' }
+  })
   .listen({
     port: Number(process.env.API_PORT) || 3001,
     hostname: '0.0.0.0',
   })
 
-console.log(`🦊 Rafin API is running at ${app.server?.hostname}:${app.server?.port}`)
+console.log(`[rafin] API running at ${app.server?.hostname}:${app.server?.port}`)
 
 export type App = typeof app

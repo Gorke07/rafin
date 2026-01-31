@@ -1,24 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { Plus, Library, Loader2, MoreVertical, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/card'
+import { EmptyState } from '@/components/dashboard/empty-state'
+import { PageHeader } from '@/components/dashboard/page-header'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { PageHeader } from '@/components/dashboard/page-header'
-import { EmptyState } from '@/components/dashboard/empty-state'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
+import { Library, Loader2, MoreVertical, Plus, Sparkles } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -46,7 +46,7 @@ function CollectionsContent() {
   const [newColor, setNewColor] = useState('#3b82f6')
   const [isCreating, setIsCreating] = useState(false)
 
-  const fetchCollections = async () => {
+  const fetchCollections = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/collections`, {
         credentials: 'include',
@@ -58,11 +58,11 @@ function CollectionsContent() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchCollections()
-  }, [])
+  }, [fetchCollections])
 
   const handleCreate = async () => {
     if (!newName.trim()) return

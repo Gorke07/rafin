@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const SETUP_CACHE_KEY = 'rafin:setup-complete'
 
 export function SetupGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -11,8 +12,13 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
   const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
-    // Skip check if already on setup page
     if (pathname === '/setup') {
+      setIsChecking(false)
+      return
+    }
+
+    const cached = sessionStorage.getItem(SETUP_CACHE_KEY)
+    if (cached === 'true') {
       setIsChecking(false)
       return
     }
@@ -26,6 +32,7 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
             router.replace('/setup')
             return
           }
+          sessionStorage.setItem(SETUP_CACHE_KEY, 'true')
         }
       } catch (error) {
         console.error('Setup check failed:', error)

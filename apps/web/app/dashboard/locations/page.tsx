@@ -1,23 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
-import {
-  Plus,
-  MapPin,
-  Home,
-  Armchair,
-  BookOpen,
-  Trash2,
-  Loader2,
-  ChevronDown,
-  ChevronRight,
-} from 'lucide-react'
+import { EmptyState } from '@/components/dashboard/empty-state'
+import { PageHeader } from '@/components/dashboard/page-header'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -26,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -33,8 +21,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PageHeader } from '@/components/dashboard/page-header'
-import { EmptyState } from '@/components/dashboard/empty-state'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Armchair,
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Home,
+  Loader2,
+  MapPin,
+  Plus,
+  Trash2,
+} from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -173,28 +173,28 @@ export default function LocationsPage() {
     return (
       <div key={location.id}>
         <div
-          className="group flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50"
+          className="group flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50"
           style={{ marginLeft: `${level * 20}px` }}
-          onClick={() => hasChildren && toggleExpand(location.id)}
         >
-          {/* Expand/collapse button */}
-          <div className="w-5 shrink-0">
-            {hasChildren ? (
-              isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )
-            ) : null}
-          </div>
-
-          {/* Icon */}
-          <div className="rounded bg-muted p-1.5">
-            <Icon className="h-4 w-4 text-muted-foreground" />
-          </div>
-
-          {/* Name */}
-          <span className="flex-1 font-medium">{location.name}</span>
+          <button
+            type="button"
+            className="flex flex-1 cursor-pointer items-center gap-2 bg-transparent border-none p-0 text-left"
+            onClick={() => hasChildren && toggleExpand(location.id)}
+          >
+            <div className="w-5 shrink-0">
+              {hasChildren ? (
+                isExpanded ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )
+              ) : null}
+            </div>
+            <div className="rounded bg-muted p-1.5">
+              <Icon className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <span className="flex-1 font-medium">{location.name}</span>
+          </button>
 
           {/* Actions */}
           <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">

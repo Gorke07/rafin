@@ -16,6 +16,9 @@
         "noUnusedImports": "error",
         "noUnusedVariables": "warn"
       },
+      "suspicious": {
+        "noArrayIndexKey": "off"
+      },
       "style": {
         "noNonNullAssertion": "off"
       }

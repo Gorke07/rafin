@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { MessageSquare, Plus, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { formatDate } from '@/lib/utils'
+import { Loader2, MessageSquare, Plus, Trash2 } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -29,7 +29,7 @@ export function BookNotes({ bookId }: BookNotesProps) {
   const [newPageNumber, setNewPageNumber] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
-  const fetchNotes = async () => {
+  const fetchNotes = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/books/${bookId}/notes`, {
         credentials: 'include',
@@ -41,11 +41,11 @@ export function BookNotes({ bookId }: BookNotesProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [bookId])
 
   useEffect(() => {
     fetchNotes()
-  }, [bookId])
+  }, [fetchNotes])
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return

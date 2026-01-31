@@ -44,17 +44,16 @@ export const bookLookupRoutes = new Elysia({ prefix: '/api/book-lookup' })
           }
 
           return { book: result, source }
-        } else {
-          // Try all sources
-          const result = await lookupBookFromAllSources(normalizedIsbn)
-
-          if (!result) {
-            set.status = 404
-            return { error: 'Book not found in any source' }
-          }
-
-          return { book: result.result, source: result.source }
         }
+        // Try all sources
+        const result = await lookupBookFromAllSources(normalizedIsbn)
+
+        if (!result) {
+          set.status = 404
+          return { error: 'Book not found in any source' }
+        }
+
+        return { book: result.result, source: result.source }
       } catch (error) {
         console.error('Book lookup error:', error)
         set.status = 500

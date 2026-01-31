@@ -1,21 +1,28 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import DOMPurify from 'dompurify'
-import { ArrowLeft, Book, Calendar, Image as ImageIcon, MapPin, Tag } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BookNotes } from '@/components/books/BookNotes'
 import { QuickActions } from '@/components/books/QuickActions'
 import { ReadingProgress } from '@/components/books/ReadingProgress'
 import { AddToCollectionModal } from '@/components/collections/AddToCollectionModal'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { plainTextToHtml } from '@/lib/html-utils'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import DOMPurify from 'dompurify'
+import {
+  ArrowLeft,
+  Book as BookIcon,
+  Calendar,
+  Image as ImageIcon,
+  MapPin,
+  Tag,
+} from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { use, useCallback, useEffect, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -69,7 +76,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   const [isLoading, setIsLoading] = useState(true)
   const [showCollectionModal, setShowCollectionModal] = useState(false)
 
-  const fetchBook = async () => {
+  const fetchBook = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/books/${id}`, {
         credentials: 'include',
@@ -81,9 +88,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     } catch (err) {
       console.error('Failed to fetch book:', err)
     }
-  }
+  }, [id])
 
-  const fetchUserBook = async () => {
+  const fetchUserBook = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/user-books?bookId=${id}`, {
         credentials: 'include',
@@ -95,11 +102,11 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     } catch {
       // User might not have this book in their list yet
     }
-  }
+  }, [id])
 
   useEffect(() => {
     Promise.all([fetchBook(), fetchUserBook()]).finally(() => setIsLoading(false))
-  }, [id])
+  }, [fetchBook, fetchUserBook])
 
   if (isLoading) {
     return (
@@ -211,7 +218,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             <Card>
               <CardContent className="space-y-2">
                 <h3 className="flex items-center gap-2 text-sm font-semibold">
-                  <Book className="h-4 w-4" />
+                  <BookIcon className="h-4 w-4" />
                   {t('collections')}
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
@@ -393,6 +400,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
  */
 function SafeHtml({ html, className }: { html: string; className?: string }) {
   const sanitized = typeof window !== 'undefined' ? DOMPurify.sanitize(html) : html
+  // biome-ignore lint/security/noDangerouslySetInnerHtml: content is sanitized via DOMPurify
   return <div className={className} dangerouslySetInnerHTML={{ __html: sanitized }} />
 }
 
