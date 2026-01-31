@@ -455,6 +455,54 @@ export const collectionRoutes = new Elysia({ prefix: '/api/collections' })
     },
   )
 
+  .patch(
+    '/:id/reorder',
+    async ({ params, body, request, set }) => {
+      const session = await auth.api.getSession({ headers: request.headers })
+
+      if (!session?.user) {
+        set.status = 401
+        return { error: 'Unauthorized' }
+      }
+
+      const collection = await db
+        .select()
+        .from(collections)
+        .where(and(eq(collections.id, Number(params.id)), eq(collections.userId, session.user.id)))
+        .limit(1)
+
+      if (collection.length === 0) {
+        set.status = 404
+        return { error: 'Collection not found' }
+      }
+
+      const { bookIds } = body
+      await Promise.all(
+        bookIds.map((bookId, index) =>
+          db
+            .update(bookCollections)
+            .set({ position: index })
+            .where(
+              and(
+                eq(bookCollections.collectionId, Number(params.id)),
+                eq(bookCollections.bookId, bookId),
+              ),
+            ),
+        ),
+      )
+
+      return { success: true }
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Object({
+        bookIds: t.Array(t.Number()),
+      }),
+    },
+  )
+
   // Remove book from collection
   .delete(
     '/:id/books/:bookId',

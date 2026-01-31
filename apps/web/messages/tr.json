@@ -289,6 +289,7 @@
     "updated": "Koleksiyon güncellendi",
     "updateFailed": "Güncelleme başarısız",
     "bookRemoved": "Kitap koleksiyondan çıkarıldı",
+    "reorderSaved": "Kitap sırası kaydedildi",
     "operationFailed": "İşlem başarısız",
     "newCollection": "Yeni Koleksiyon",
     "collectionName": "Koleksiyon Adı",
