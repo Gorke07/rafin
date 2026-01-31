@@ -182,7 +182,13 @@
     "idefix": "İdefix",
     "googleBooks": "Google Books",
     "openLibrary": "Open Library",
-    "allSources": "Tümü"
+    "allSources": "Tümü",
+    "scanBarcode": "Barkod Tara",
+    "scanning": "Taranıyor...",
+    "pointCamera": "Kamerayı barkoda doğru tutun",
+    "cameraPermissionDenied": "Kamera erişimi reddedildi",
+    "cameraNotFound": "Kamera bulunamadı",
+    "scannerError": "Tarayıcı hatası"
   },
   "readingProgress": {
     "title": "Okuma İlerlemesi",

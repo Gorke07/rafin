@@ -182,7 +182,13 @@
     "idefix": "Idefix",
     "googleBooks": "Google Books",
     "openLibrary": "Open Library",
-    "allSources": "All"
+    "allSources": "All",
+    "scanBarcode": "Scan Barcode",
+    "scanning": "Scanning...",
+    "pointCamera": "Point the camera at the barcode",
+    "cameraPermissionDenied": "Camera access denied",
+    "cameraNotFound": "No camera found",
+    "scannerError": "Scanner error"
   },
   "readingProgress": {
     "title": "Reading Progress",

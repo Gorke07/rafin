@@ -38,5 +38,11 @@ apps/api/uploads/*
 # Testing
 coverage/
 
+# PWA build output
+apps/web/public/sw.js
+apps/web/public/sw.js.map
+apps/web/public/workbox-*.js
+apps/web/public/workbox-*.js.map
+
 # Misc
 *.tsbuildinfo

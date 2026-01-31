@@ -1,6 +1,13 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -10,8 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { BookOpen, Image as ImageIcon, Loader2, Search } from 'lucide-react'
-import { useState } from 'react'
+import { BookOpen, Image as ImageIcon, Loader2, ScanLine, Search } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import dynamic from 'next/dynamic'
+import { useCallback, useState } from 'react'
+
+const BarcodeScanner = dynamic(
+  () => import('@/components/books/BarcodeScanner').then((mod) => mod.BarcodeScanner),
+  { ssr: false },
+)
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -38,35 +52,72 @@ interface ISBNLookupProps {
 
 type SearchMode = 'isbn' | 'title'
 
-const sources = [
-  { id: 'auto', name: 'Otomatik Seç' },
-  { id: 'kitapyurdu', name: 'Kitapyurdu' },
-  { id: 'bkmkitap', name: 'BKM Kitap' },
-  { id: 'idefix', name: 'İdefix' },
-  { id: 'google', name: 'Google Books' },
-  { id: 'openlibrary', name: 'Open Library' },
-]
-
-const titleSources = [
-  { id: 'all', name: 'Tümü' },
-  { id: 'kitapyurdu', name: 'Kitapyurdu' },
-  { id: 'bkmkitap', name: 'BKM Kitap' },
-  { id: 'idefix', name: 'İdefix' },
-  { id: 'google', name: 'Google Books' },
-  { id: 'openlibrary', name: 'Open Library' },
-]
-
 export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
+  const t = useTranslations('isbnLookup')
   const [searchMode, setSearchMode] = useState<SearchMode>('isbn')
   const [query, setQuery] = useState('')
   const [source, setSource] = useState('auto')
   const [isLoading, setIsLoading] = useState(false)
   const [searchResults, setSearchResults] = useState<BookLookupResult[]>([])
   const [showResults, setShowResults] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
+
+  const sources = [
+    { id: 'auto', name: t('autoSelect') },
+    { id: 'kitapyurdu', name: t('kitapyurdu') },
+    { id: 'bkmkitap', name: t('bkmKitap') },
+    { id: 'idefix', name: t('idefix') },
+    { id: 'google', name: t('googleBooks') },
+    { id: 'openlibrary', name: t('openLibrary') },
+  ]
+
+  const titleSources = [
+    { id: 'all', name: t('allSources') },
+    { id: 'kitapyurdu', name: t('kitapyurdu') },
+    { id: 'bkmkitap', name: t('bkmKitap') },
+    { id: 'idefix', name: t('idefix') },
+    { id: 'google', name: t('googleBooks') },
+    { id: 'openlibrary', name: t('openLibrary') },
+  ]
+
+  const handleLookupWithISBN = useCallback(
+    async (isbn: string) => {
+      setIsLoading(true)
+      setSearchResults([])
+      setShowResults(false)
+
+      try {
+        const params = new URLSearchParams({ isbn: isbn.replace(/[-\s]/g, '') })
+
+        const response = await fetch(`${API_URL}/api/book-lookup?${params}`, {
+          credentials: 'include',
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          onError?.(data.error || t('bookNotFound'))
+          return
+        }
+
+        onBookFound(data.book)
+      } catch {
+        onError?.(t('searchError'))
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [onBookFound, onError, t],
+  )
 
   const handleLookup = async () => {
     if (!query.trim()) {
-      onError?.(searchMode === 'isbn' ? 'ISBN giriniz' : 'Kitap adı giriniz')
+      onError?.(searchMode === 'isbn' ? t('enterIsbn') : t('enterBookTitle'))
+      return
+    }
+
+    if (searchMode === 'isbn') {
+      await handleLookupWithISBN(query)
       return
     }
 
@@ -77,53 +128,31 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
     try {
       const effectiveSource = source === 'auto' || source === 'all' ? '' : source
 
-      if (searchMode === 'isbn') {
-        // ISBN lookup
-        const params = new URLSearchParams({ isbn: query.replace(/[-\s]/g, '') })
-        if (effectiveSource) {
-          params.append('source', effectiveSource)
-        }
-
-        const response = await fetch(`${API_URL}/api/book-lookup?${params}`, {
-          credentials: 'include',
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          onError?.(data.error || 'Kitap bulunamadı')
-          return
-        }
-
-        onBookFound(data.book)
-      } else {
-        // Title search
-        const params = new URLSearchParams({ q: query.trim() })
-        if (effectiveSource) {
-          params.append('source', effectiveSource)
-        }
-
-        const response = await fetch(`${API_URL}/api/book-lookup/search?${params}`, {
-          credentials: 'include',
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          onError?.(data.error || 'Arama başarısız')
-          return
-        }
-
-        if (!data.books || data.books.length === 0) {
-          onError?.('Kitap bulunamadı')
-          return
-        }
-
-        setSearchResults(data.books)
-        setShowResults(true)
+      const params = new URLSearchParams({ q: query.trim() })
+      if (effectiveSource) {
+        params.append('source', effectiveSource)
       }
+
+      const response = await fetch(`${API_URL}/api/book-lookup/search?${params}`, {
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        onError?.(data.error || t('searchFailed'))
+        return
+      }
+
+      if (!data.books || data.books.length === 0) {
+        onError?.(t('bookNotFound'))
+        return
+      }
+
+      setSearchResults(data.books)
+      setShowResults(true)
     } catch {
-      onError?.('Arama sırasında bir hata oluştu')
+      onError?.(t('searchError'))
     } finally {
       setIsLoading(false)
     }
@@ -131,7 +160,6 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
 
   const handleSelectBook = async (book: BookLookupResult) => {
     if (book.sourceUrl) {
-      // Fetch full details (including description) from the product page
       try {
         setIsLoading(true)
         const params = new URLSearchParams({ url: book.sourceUrl })
@@ -141,7 +169,6 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
         if (response.ok) {
           const data = await response.json()
           if (data.book) {
-            // Merge: full details take priority, but keep search result data as fallback
             onBookFound({ ...book, ...data.book })
             setShowResults(false)
             setSearchResults([])
@@ -169,11 +196,28 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
     }
   }
 
+  const handleBarcodeScan = useCallback(
+    (isbn: string) => {
+      setScannerOpen(false)
+      setQuery(isbn)
+      handleLookupWithISBN(isbn)
+    },
+    [handleLookupWithISBN],
+  )
+
+  const handleScannerError = useCallback(
+    (error: string) => {
+      setScannerOpen(false)
+      onError?.(error)
+    },
+    [onError],
+  )
+
   return (
     <div className="space-y-4 rounded-lg border bg-card p-4">
       <div className="flex items-center gap-2">
         <Search className="h-5 w-5 text-muted-foreground" />
-        <h3 className="font-medium">Kitap Ara</h3>
+        <h3 className="font-medium">{t('searchBook')}</h3>
       </div>
 
       {/* Search mode toggle */}
@@ -208,17 +252,19 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Kitap Adı
+          {t('bookTitle')}
         </button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto]">
         <div>
-          <Label htmlFor="book-search-input">{searchMode === 'isbn' ? 'ISBN' : 'Kitap Adı'}</Label>
+          <Label htmlFor="book-search-input">
+            {searchMode === 'isbn' ? 'ISBN' : t('bookTitle')}
+          </Label>
           <Input
             id="book-search-input"
             type="text"
-            placeholder={searchMode === 'isbn' ? '978-975-...' : 'Kitap adı yazın...'}
+            placeholder={searchMode === 'isbn' ? '978-975-...' : t('enterBookTitle')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -226,7 +272,7 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
         </div>
 
         <div>
-          <Label>Kaynak</Label>
+          <Label>{t('source')}</Label>
           <Select value={source} onValueChange={setSource}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -241,34 +287,56 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
           </Select>
         </div>
 
-        <div className="flex items-end">
+        <div className="flex items-end gap-2">
           <Button type="button" onClick={handleLookup} disabled={isLoading || !query.trim()}>
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Aranıyor...
+                {t('searching')}
               </>
             ) : (
               <>
                 <Search className="h-4 w-4" />
-                Ara
+                {t('searchButton')}
               </>
             )}
           </Button>
+          {searchMode === 'isbn' && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setScannerOpen(true)}
+              title={t('scanBarcode')}
+            >
+              <ScanLine className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
       <p className="text-sm text-muted-foreground">
-        {searchMode === 'isbn'
-          ? 'ISBN numarasını girin ve otomatik olarak kitap bilgilerini çekin.'
-          : 'Kitap adını girin ve sonuçlardan seçin.'}
+        {searchMode === 'isbn' ? t('isbnHint') : t('titleHint')}
       </p>
+
+      {/* Barcode scanner dialog */}
+      <Dialog open={scannerOpen} onOpenChange={setScannerOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('scanBarcode')}</DialogTitle>
+            <DialogDescription>{t('pointCamera')}</DialogDescription>
+          </DialogHeader>
+          {scannerOpen && (
+            <BarcodeScanner onScan={handleBarcodeScan} onError={handleScannerError} />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Search results for title search */}
       {showResults && searchResults.length > 0 && (
         <div className="space-y-2 border-t pt-4">
           <p className="text-sm font-medium text-muted-foreground">
-            {searchResults.length} sonuç bulundu — birini seçin:
+            {t('resultsFound', { count: searchResults.length })}
           </p>
           <div className="max-h-80 space-y-2 overflow-y-auto">
             {searchResults.map((book, i) => (
