@@ -58,20 +58,30 @@ export function QuickActions({ bookId, onCollectionClick }: QuickActionsProps) {
       <Button
         variant="outline"
         size="sm"
+        className="h-9 min-h-[44px] sm:min-h-0"
         onClick={() => router.push(`/dashboard/books/${bookId}/edit`)}
       >
         <Edit className="mr-1 h-4 w-4" />
         {t('edit')}
       </Button>
 
-      <Button variant="outline" size="sm" onClick={onCollectionClick}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-9 min-h-[44px] sm:min-h-0"
+        onClick={onCollectionClick}
+      >
         <Library className="mr-1 h-4 w-4" />
         {t('addToCollection')}
       </Button>
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/10">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 min-h-[44px] text-destructive hover:bg-destructive/10 sm:min-h-0"
+          >
             <Trash2 className="mr-1 h-4 w-4" />
             {t('deleteBook')}
           </Button>

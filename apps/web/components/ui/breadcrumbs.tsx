@@ -13,10 +13,13 @@ interface BreadcrumbsProps {
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm text-muted-foreground">
+    <nav
+      aria-label="Breadcrumb"
+      className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
+    >
       <Link
         href="/dashboard"
-        className="flex items-center gap-1 transition-colors hover:text-foreground"
+        className="flex shrink-0 items-center gap-1 transition-colors hover:text-foreground"
       >
         <Home className="h-3.5 w-3.5" />
       </Link>
@@ -26,9 +29,14 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
           <Fragment key={item.label}>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
             {isLast || !item.href ? (
-              <span className="truncate font-medium text-foreground">{item.label}</span>
+              <span className="max-w-[200px] truncate font-medium text-foreground sm:max-w-none">
+                {item.label}
+              </span>
             ) : (
-              <Link href={item.href} className="truncate transition-colors hover:text-foreground">
+              <Link
+                href={item.href}
+                className="shrink-0 truncate transition-colors hover:text-foreground"
+              >
                 {item.label}
               </Link>
             )}

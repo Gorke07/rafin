@@ -106,13 +106,13 @@ export function BookFilters({ filters, onChange, languages }: BookFiltersProps) 
       </div>
 
       {isOpen && (
-        <div className="flex flex-wrap gap-3 rounded-lg border bg-muted/30 p-4">
-          <div className="w-40">
+        <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-4 sm:flex sm:flex-wrap">
+          <div className="min-w-0 sm:w-40">
             <Select
               value={filters.language || undefined}
               onValueChange={(v) => updateFilter('language', v === 'all' ? '' : v)}
             >
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-10 text-xs sm:h-9">
                 <SelectValue placeholder={t('language')} />
               </SelectTrigger>
               <SelectContent>
@@ -126,12 +126,12 @@ export function BookFilters({ filters, onChange, languages }: BookFiltersProps) 
             </Select>
           </div>
 
-          <div className="w-40">
+          <div className="min-w-0 sm:w-40">
             <Select
               value={filters.bindingType || undefined}
               onValueChange={(v) => updateFilter('bindingType', v === 'all' ? '' : v)}
             >
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-10 text-xs sm:h-9">
                 <SelectValue placeholder={t('bindingType')} />
               </SelectTrigger>
               <SelectContent>
@@ -144,12 +144,12 @@ export function BookFilters({ filters, onChange, languages }: BookFiltersProps) 
           </div>
 
           {categories.length > 0 && (
-            <div className="w-44">
+            <div className="min-w-0 sm:w-44">
               <Select
                 value={filters.categoryId || undefined}
                 onValueChange={(v) => updateFilter('categoryId', v === 'all' ? '' : v)}
               >
-                <SelectTrigger className="h-9 text-xs">
+                <SelectTrigger className="h-10 text-xs sm:h-9">
                   <SelectValue placeholder={t('category')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -164,12 +164,12 @@ export function BookFilters({ filters, onChange, languages }: BookFiltersProps) 
             </div>
           )}
 
-          <div className="w-40">
+          <div className="min-w-0 sm:w-40">
             <Select
               value={filters.status || undefined}
               onValueChange={(v) => updateFilter('status', v === 'all' ? '' : v)}
             >
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-10 text-xs sm:h-9">
                 <SelectValue placeholder={t('readingStatus')} />
               </SelectTrigger>
               <SelectContent>
@@ -182,13 +182,13 @@ export function BookFilters({ filters, onChange, languages }: BookFiltersProps) 
             </Select>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="col-span-2 flex items-center gap-1.5 sm:col-span-1">
             <Input
               type="number"
               placeholder={t('yearFrom')}
               value={filters.yearFrom}
               onChange={(e) => updateFilter('yearFrom', e.target.value)}
-              className="h-9 w-24 text-xs"
+              className="h-10 min-w-0 flex-1 text-xs sm:h-9 sm:w-24 sm:flex-none"
               min="1800"
               max="2099"
             />
@@ -198,7 +198,7 @@ export function BookFilters({ filters, onChange, languages }: BookFiltersProps) 
               placeholder={t('yearTo')}
               value={filters.yearTo}
               onChange={(e) => updateFilter('yearTo', e.target.value)}
-              className="h-9 w-24 text-xs"
+              className="h-10 min-w-0 flex-1 text-xs sm:h-9 sm:w-24 sm:flex-none"
               min="1800"
               max="2099"
             />
