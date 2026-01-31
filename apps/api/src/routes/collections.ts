@@ -1,7 +1,138 @@
-import { bookCollections, books, collections, db } from '@rafin/db'
-import { and, desc, eq, isNull } from 'drizzle-orm'
+import {
+  authors,
+  bookAuthors,
+  bookCategories,
+  bookCollections,
+  books,
+  collections,
+  db,
+  reviews,
+  userBooks,
+} from '@rafin/db'
+import { type SQL, and, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
 import { auth } from '../lib/auth'
+
+interface SmartRule {
+  field: string
+  operator: string
+  value: string | number | boolean
+}
+
+interface SmartFilters {
+  logic: 'and' | 'or'
+  rules: SmartRule[]
+}
+
+function buildSmartConditions(filters: SmartFilters): SQL[] {
+  const conditions: SQL[] = [isNull(books.deletedAt)]
+
+  const ruleConditions: SQL[] = filters.rules
+    .map((rule) => {
+      switch (rule.field) {
+        case 'status': {
+          const bookIdsWithStatus = db
+            .select({ bookId: userBooks.bookId })
+            .from(userBooks)
+            .where(
+              eq(userBooks.status, String(rule.value) as 'tbr' | 'reading' | 'completed' | 'dnf'),
+            )
+          return inArray(books.id, bookIdsWithStatus)
+        }
+        case 'language':
+          return eq(books.language, String(rule.value)) as SQL
+        case 'bindingType':
+          return eq(
+            books.bindingType,
+            String(rule.value) as 'paperback' | 'hardcover' | 'ebook',
+          ) as SQL
+        case 'categoryId': {
+          const bookIdsInCategory = db
+            .select({ bookId: bookCategories.bookId })
+            .from(bookCategories)
+            .where(eq(bookCategories.categoryId, Number(rule.value)))
+          return inArray(books.id, bookIdsInCategory)
+        }
+        case 'publishedYear': {
+          const year = Number(rule.value)
+          if (rule.operator === 'equals') return eq(books.publishedYear, year) as SQL
+          if (rule.operator === 'greaterThan') return gte(books.publishedYear, year) as SQL
+          if (rule.operator === 'lessThan') return lte(books.publishedYear, year) as SQL
+          return null
+        }
+        case 'pageCount': {
+          const count = Number(rule.value)
+          if (rule.operator === 'greaterThan') return gte(books.pageCount, count) as SQL
+          if (rule.operator === 'lessThan') return lte(books.pageCount, count) as SQL
+          return null
+        }
+        case 'rating': {
+          const rating = Number(rule.value)
+          const bookIdsWithRating = db
+            .select({ bookId: userBooks.bookId })
+            .from(userBooks)
+            .innerJoin(reviews, eq(reviews.userBookId, userBooks.id))
+            .where(
+              rule.operator === 'greaterThan'
+                ? gte(reviews.rating, rating)
+                : rule.operator === 'lessThan'
+                  ? lte(reviews.rating, rating)
+                  : eq(reviews.rating, rating),
+            )
+          return inArray(books.id, bookIdsWithRating)
+        }
+        case 'hasReview': {
+          const bookIdsWithReview = db
+            .select({ bookId: userBooks.bookId })
+            .from(userBooks)
+            .innerJoin(reviews, eq(reviews.userBookId, userBooks.id))
+          const wantsReview = rule.value === 'true' || rule.value === true
+          return wantsReview
+            ? inArray(books.id, bookIdsWithReview)
+            : (isNull(books.deletedAt) as SQL)
+        }
+        default:
+          return null
+      }
+    })
+    .filter((c): c is SQL => c !== null)
+
+  if (ruleConditions.length > 0) {
+    const combined = filters.logic === 'or' ? or(...ruleConditions) : and(...ruleConditions)
+    if (combined) conditions.push(combined)
+  }
+
+  return conditions
+}
+
+async function evaluateSmartCollection(smartFilters: SmartFilters) {
+  const conditions = buildSmartConditions(smartFilters)
+
+  const result = await db
+    .select()
+    .from(books)
+    .where(and(...conditions))
+    .orderBy(desc(books.createdAt))
+    .limit(200)
+
+  const booksWithAuthors = await Promise.all(
+    result.map(async (book) => {
+      const bookAuths = await db
+        .select({ name: authors.name })
+        .from(bookAuthors)
+        .innerJoin(authors, eq(bookAuthors.authorId, authors.id))
+        .where(eq(bookAuthors.bookId, book.id))
+        .orderBy(bookAuthors.order)
+
+      return {
+        book,
+        authorNames: bookAuths.map((a) => a.name).join(', '),
+      }
+    }),
+  )
+
+  return booksWithAuthors
+}
 
 export const collectionRoutes = new Elysia({ prefix: '/api/collections' })
   // Get user's collections
@@ -22,15 +153,17 @@ export const collectionRoutes = new Elysia({ prefix: '/api/collections' })
     // Get book counts for each collection
     const collectionsWithCounts = await Promise.all(
       result.map(async (collection) => {
-        const bookCount = await db
+        if (collection.isSmart && collection.smartFilters) {
+          const smartBooks = await evaluateSmartCollection(collection.smartFilters as SmartFilters)
+          return { ...collection, bookCount: smartBooks.length }
+        }
+
+        const manualBooks = await db
           .select()
           .from(bookCollections)
           .where(eq(bookCollections.collectionId, collection.id))
 
-        return {
-          ...collection,
-          bookCount: bookCount.length,
-        }
+        return { ...collection, bookCount: manualBooks.length }
       }),
     )
 
@@ -59,7 +192,20 @@ export const collectionRoutes = new Elysia({ prefix: '/api/collections' })
         return { error: 'Collection not found' }
       }
 
-      // Get books in collection
+      const col = collection[0]
+
+      if (col.isSmart && col.smartFilters) {
+        const smartBooks = await evaluateSmartCollection(col.smartFilters as SmartFilters)
+        return {
+          collection: col,
+          books: smartBooks.map((b) => ({
+            book: { ...b.book, authorNames: b.authorNames },
+            addedAt: null,
+            position: null,
+          })),
+        }
+      }
+
       const collectionBooks = await db
         .select({
           book: books,
@@ -71,9 +217,25 @@ export const collectionRoutes = new Elysia({ prefix: '/api/collections' })
         .where(and(eq(bookCollections.collectionId, Number(params.id)), isNull(books.deletedAt)))
         .orderBy(bookCollections.position)
 
+      const manualBooksWithAuthors = await Promise.all(
+        collectionBooks.map(async (cb) => {
+          const bookAuths = await db
+            .select({ name: authors.name })
+            .from(bookAuthors)
+            .innerJoin(authors, eq(bookAuthors.authorId, authors.id))
+            .where(eq(bookAuthors.bookId, cb.book.id))
+            .orderBy(bookAuthors.order)
+
+          return {
+            ...cb,
+            book: { ...cb.book, authorNames: bookAuths.map((a) => a.name).join(', ') },
+          }
+        }),
+      )
+
       return {
-        collection: collection[0],
-        books: collectionBooks,
+        collection: col,
+        books: manualBooksWithAuthors,
       }
     },
     {
@@ -83,7 +245,26 @@ export const collectionRoutes = new Elysia({ prefix: '/api/collections' })
     },
   )
 
-  // Create collection
+  .post(
+    '/preview-smart',
+    async ({ body, request, set }) => {
+      const session = await auth.api.getSession({ headers: request.headers })
+
+      if (!session?.user) {
+        set.status = 401
+        return { error: 'Unauthorized' }
+      }
+
+      const smartBooks = await evaluateSmartCollection(body.smartFilters as SmartFilters)
+      return { books: smartBooks, count: smartBooks.length }
+    },
+    {
+      body: t.Object({
+        smartFilters: t.Any(),
+      }),
+    },
+  )
+
   .post(
     '/',
     async ({ body, request, set }) => {
