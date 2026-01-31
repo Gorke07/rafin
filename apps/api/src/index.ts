@@ -12,6 +12,8 @@ import { categoryRoutes } from './routes/categories'
 import { collectionRoutes } from './routes/collections'
 import { locationRoutes } from './routes/locations'
 import { publisherRoutes } from './routes/publishers'
+import { quotesRoutes } from './routes/quotes'
+import { reviewsRoutes } from './routes/reviews'
 import { setupRoutes } from './routes/setup'
 import { statsRoutes } from './routes/stats'
 import { uploadRoutes } from './routes/upload'
@@ -45,6 +47,8 @@ const app = new Elysia()
   .use(categoryRoutes)
   .use(authorRoutes)
   .use(publisherRoutes)
+  .use(quotesRoutes)
+  .use(reviewsRoutes)
   .use(uploadRoutes)
   .use(userSettingsRoutes)
   .use(authMiddleware)
