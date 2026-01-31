@@ -7,6 +7,7 @@ import { StatCard, StatCardSkeleton } from '@/components/dashboard/stat-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { type RecentlyViewedBook, getRecentlyViewed } from '@/hooks/use-recently-viewed'
 import { BookMarked, BookOpen, Building2, MapPin, TrendingUp, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -48,10 +49,12 @@ export default function DashboardPage() {
   })
   const [recentBooks, setRecentBooks] = useState<RecentBook[]>([])
   const [currentlyReading, setCurrentlyReading] = useState<CurrentlyReadingItem[]>([])
+  const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewedBook[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetchData()
+    setRecentlyViewed(getRecentlyViewed())
   }, [])
 
   const fetchData = async () => {
@@ -242,6 +245,37 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {recentlyViewed.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{td('recentlyViewed')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {recentlyViewed.map((book) => {
+                const src = coverSrc(book)
+                return (
+                  <Link
+                    key={book.id}
+                    href={`/dashboard/books/${book.id}`}
+                    className="group flex w-20 shrink-0 flex-col items-center gap-1.5"
+                  >
+                    <div className="h-24 w-16 overflow-hidden rounded-md bg-muted shadow-sm transition-transform group-hover:scale-105">
+                      {src ? (
+                        <img src={src} alt={book.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <BookCoverPlaceholder title={book.title} size="sm" />
+                      )}
+                    </div>
+                    <p className="line-clamp-2 text-center text-xs leading-tight">{book.title}</p>
+                  </Link>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <ReadingCharts />
     </div>

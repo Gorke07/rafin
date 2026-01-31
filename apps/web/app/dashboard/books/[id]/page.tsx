@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { addRecentlyViewed } from '@/hooks/use-recently-viewed'
 import { plainTextToHtml } from '@/lib/html-utils'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import DOMPurify from 'dompurify'
@@ -104,6 +105,17 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     Promise.all([fetchBook(), fetchUserBook()]).finally(() => setIsLoading(false))
   }, [fetchBook, fetchUserBook])
+
+  useEffect(() => {
+    if (book) {
+      addRecentlyViewed({
+        id: book.id,
+        title: book.title,
+        coverPath: book.coverPath,
+        coverUrl: book.coverUrl,
+      })
+    }
+  }, [book])
 
   if (isLoading) {
     return (
