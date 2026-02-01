@@ -1,7 +1,7 @@
 import { bookPublishers, books, db, publishers } from '@rafin/db'
 import { and, count, desc, eq, ilike, isNull, like } from 'drizzle-orm'
-import { normalizePublisher } from '../services/normalize-publisher'
 import { Elysia, t } from 'elysia'
+import { normalizePublisher } from '../services/normalize-publisher'
 
 export const publisherRoutes = new Elysia({ prefix: '/api/publishers' })
   // List publishers (with search)
