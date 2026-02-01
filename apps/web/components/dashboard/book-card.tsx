@@ -32,12 +32,12 @@ export function BookCard({ book, selectable, selected, onSelect }: BookCardProps
       )}
     >
       <CardContent className="p-0">
-        <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
+        <div className="relative aspect-[2/3] w-full overflow-hidden">
           {coverSrc ? (
             <img
               src={coverSrc}
               alt={book.title}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              className="h-full w-full object-contain transition-transform group-hover:scale-105"
             />
           ) : (
             <BookCoverPlaceholder title={book.title} author={book.authorNames} size="lg" />
@@ -87,7 +87,7 @@ export function BookCardSkeleton() {
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-0">
-        <Skeleton className="aspect-[3/4] w-full rounded-none" />
+        <Skeleton className="aspect-[2/3] w-full rounded-none" />
         <div className="p-3">
           <Skeleton className="h-4 w-3/4" />
           <Skeleton className="mt-1.5 h-3 w-1/2" />
