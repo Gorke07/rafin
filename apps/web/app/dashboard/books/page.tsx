@@ -19,36 +19,65 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import { Input } from '@/components/ui/input'
 import { PaginationControls } from '@/components/ui/pagination-controls'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import {
+  type ColumnDef,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import {
   ArrowUpDown,
   BookOpen,
   CheckSquare,
   ChevronDown,
   ChevronUp,
+  Eye,
   LayoutGrid,
   List,
   Loader2,
+  MoreHorizontal,
+  Pencil,
   Plus,
   Search,
+  Settings2,
   Square,
   Trash2,
   X,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 type ViewMode = 'card' | 'table'
-type SortField = 'title' | 'authorNames' | 'publishedYear' | 'createdAt' | 'pageCount'
-type SortDir = 'asc' | 'desc'
 
 interface Book {
   id: number
@@ -83,8 +112,6 @@ export default function BooksPage() {
     }
     return 'card'
   })
-  const [sortField, setSortField] = useState<SortField>('createdAt')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [filters, setFilters] = useState<BookFilterValues>({ ...EMPTY_FILTERS })
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(() => {
@@ -153,15 +180,6 @@ export default function BooksPage() {
     return Array.from(langs).sort()
   }, [books])
 
-  const toggleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortField(field)
-      setSortDir('asc')
-    }
-  }
-
   const filtered = books.filter((book) => {
     if (filters.language && book.language !== filters.language) return false
     if (filters.bindingType && book.bindingType !== filters.bindingType) return false
@@ -170,17 +188,6 @@ export default function BooksPage() {
     if (filters.yearTo && (!book.publishedYear || book.publishedYear > Number(filters.yearTo)))
       return false
     return true
-  })
-
-  const sorted = [...filtered].sort((a, b) => {
-    const dir = sortDir === 'asc' ? 1 : -1
-    const av = a[sortField]
-    const bv = b[sortField]
-    if (av == null && bv == null) return 0
-    if (av == null) return 1
-    if (bv == null) return -1
-    if (typeof av === 'string') return av.localeCompare(bv as string) * dir
-    return ((av as number) - (bv as number)) * dir
   })
 
   const toggleSelect = (id: number) => {
@@ -196,10 +203,10 @@ export default function BooksPage() {
   }
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === sorted.length) {
+    if (selectedIds.size === filtered.length) {
       setSelectedIds(new Set())
     } else {
-      setSelectedIds(new Set(sorted.map((b) => b.id)))
+      setSelectedIds(new Set(filtered.map((b) => b.id)))
     }
   }
 
@@ -266,7 +273,7 @@ export default function BooksPage() {
         </form>
 
         <div className="flex items-center gap-2">
-          {!isLoading && sorted.length > 0 && (
+          {!isLoading && filtered.length > 0 && (
             <Button
               variant={isSelectMode ? 'default' : 'outline'}
               size="sm"
@@ -308,13 +315,17 @@ export default function BooksPage() {
           </div>
         ) : (
           <Card>
-            <div className="space-y-3 p-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <Skeleton className="h-10 w-7 rounded" />
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="hidden h-4 w-16 md:block" />
+            <div className="space-y-1 p-1">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 rounded-md px-3 py-3">
+                  <Skeleton className="h-12 w-8 shrink-0 rounded" />
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <Skeleton className="hidden h-3 w-16 md:block" />
+                  <Skeleton className="hidden h-3 w-12 lg:block" />
+                  <Skeleton className="hidden h-3 w-20 lg:block" />
                 </div>
               ))}
             </div>
@@ -363,17 +374,14 @@ export default function BooksPage() {
         )
       ) : view === 'card' ? (
         <CardView
-          books={sorted}
+          books={filtered}
           selectable={isSelectMode}
           selectedIds={selectedIds}
           onSelect={toggleSelect}
         />
       ) : (
-        <TableView
-          books={sorted}
-          sortField={sortField}
-          sortDir={sortDir}
-          onSort={toggleSort}
+        <BooksTableView
+          books={filtered}
           selectable={isSelectMode}
           selectedIds={selectedIds}
           onSelect={toggleSelect}
@@ -398,7 +406,7 @@ export default function BooksPage() {
               {t('selected', { count: selectedIds.size })}
             </span>
             <Button variant="outline" size="sm" onClick={toggleSelectAll}>
-              {selectedIds.size === sorted.length ? (
+              {selectedIds.size === filtered.length ? (
                 <>
                   <Square className="mr-1 h-4 w-4" />
                   {t('deselectAll')}
@@ -446,6 +454,8 @@ export default function BooksPage() {
   )
 }
 
+/* ─── Card View ─────────────────────────────────────────────────── */
+
 function CardView({
   books,
   selectable,
@@ -480,175 +490,393 @@ function CardView({
   )
 }
 
-function SortIcon({
-  field,
-  activeField,
-  dir,
-}: {
-  field: SortField
-  activeField: SortField
-  dir: SortDir
-}) {
-  if (field !== activeField) {
-    return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />
+/* ─── Table View (TanStack Table) ───────────────────────────────── */
+
+function CoverCell({ book }: { book: Book }) {
+  const cover = getCoverSrc(book)
+
+  if (cover) {
+    return (
+      <HoverCard openDelay={200} closeDelay={0}>
+        <HoverCardTrigger asChild>
+          <Link href={`/dashboard/books/${book.id}`} className="block">
+            <div className="relative h-12 w-8 overflow-hidden rounded-sm bg-muted shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md dark:ring-white/10">
+              <Image src={cover} alt={book.title} fill className="object-cover" sizes="32px" />
+            </div>
+          </Link>
+        </HoverCardTrigger>
+        <HoverCardContent side="right" align="start" className="w-auto p-1.5">
+          <Image
+            src={cover}
+            alt={book.title}
+            width={200}
+            height={288}
+            className="h-72 w-auto rounded object-contain"
+          />
+        </HoverCardContent>
+      </HoverCard>
+    )
   }
-  return dir === 'asc' ? (
-    <ChevronUp className="h-3.5 w-3.5" />
-  ) : (
-    <ChevronDown className="h-3.5 w-3.5" />
+
+  return (
+    <Link href={`/dashboard/books/${book.id}`} className="block">
+      <div className="h-12 w-8 overflow-hidden rounded-sm shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+        <BookCoverPlaceholder title={book.title} size="sm" />
+      </div>
+    </Link>
   )
 }
 
-function TableView({
+function SortHeader({
+  column,
+  children,
+}: {
+  column: {
+    getIsSorted: () => false | 'asc' | 'desc'
+    getToggleSortingHandler: () => ((event: unknown) => void) | undefined
+  }
+  children: React.ReactNode
+}) {
+  const sorted = column.getIsSorted()
+  return (
+    <button
+      type="button"
+      className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+      onClick={column.getToggleSortingHandler()}
+    >
+      {children}
+      {sorted === 'asc' ? (
+        <ChevronUp className="h-3.5 w-3.5" />
+      ) : sorted === 'desc' ? (
+        <ChevronDown className="h-3.5 w-3.5" />
+      ) : (
+        <ArrowUpDown className="h-3 w-3 opacity-40" />
+      )}
+    </button>
+  )
+}
+
+function RowActions({ book }: { book: Book }) {
+  const t = useTranslations('books')
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuLabel className="text-xs">{t('actions')}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={`/dashboard/books/${book.id}`}>
+            <Eye className="mr-2 h-3.5 w-3.5" />
+            {t('viewBook')}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={`/dashboard/books/${book.id}/edit`}>
+            <Pencil className="mr-2 h-3.5 w-3.5" />
+            {t('editBook')}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="text-destructive focus:text-destructive">
+          <Trash2 className="mr-2 h-3.5 w-3.5" />
+          {t('deleteBook')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function BooksTableView({
   books,
-  sortField,
-  sortDir,
-  onSort,
   selectable,
   selectedIds,
   onSelect,
   onSelectAll,
 }: {
   books: Book[]
-  sortField: SortField
-  sortDir: SortDir
-  onSort: (f: SortField) => void
   selectable: boolean
   selectedIds: Set<number>
   onSelect: (id: number) => void
   onSelectAll: () => void
 }) {
   const t = useTranslations('books')
-  const thClass =
-    'px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors'
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('books-table-columns')
+        if (saved) return JSON.parse(saved)
+      } catch {}
+    }
+    return {}
+  })
+
+  useEffect(() => {
+    localStorage.setItem('books-table-columns', JSON.stringify(columnVisibility))
+  }, [columnVisibility])
+
+  const columns = useMemo<ColumnDef<Book>[]>(() => {
+    const cols: ColumnDef<Book>[] = []
+
+    if (selectable) {
+      cols.push({
+        id: 'select',
+        header: () => (
+          <Checkbox
+            checked={selectedIds.size === books.length && books.length > 0}
+            onCheckedChange={onSelectAll}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={selectedIds.has(row.original.id)}
+            onCheckedChange={() => onSelect(row.original.id)}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        size: 40,
+      })
+    }
+
+    cols.push(
+      {
+        id: 'cover',
+        header: () => null,
+        cell: ({ row }) => <CoverCell book={row.original} />,
+        enableSorting: false,
+        enableHiding: false,
+        size: 50,
+      },
+      {
+        accessorKey: 'title',
+        header: ({ column }) => <SortHeader column={column}>{t('titleColumn')}</SortHeader>,
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <Link
+              href={`/dashboard/books/${row.original.id}`}
+              className="line-clamp-1 font-medium transition-colors hover:text-primary"
+            >
+              {row.original.title}
+            </Link>
+            <span className="line-clamp-1 text-xs text-muted-foreground md:hidden">
+              {row.original.authorNames}
+            </span>
+          </div>
+        ),
+        size: 300,
+      },
+      {
+        accessorKey: 'authorNames',
+        header: ({ column }) => <SortHeader column={column}>{t('author')}</SortHeader>,
+        cell: ({ row }) => (
+          <span className="line-clamp-1 text-muted-foreground">{row.original.authorNames}</span>
+        ),
+        meta: { hideOnMobile: true },
+        size: 200,
+      },
+      {
+        accessorKey: 'publishedYear',
+        header: ({ column }) => <SortHeader column={column}>{t('year')}</SortHeader>,
+        cell: ({ row }) => (
+          <span className="tabular-nums text-muted-foreground">
+            {row.original.publishedYear || '—'}
+          </span>
+        ),
+        meta: { hideOnTablet: true },
+        size: 80,
+      },
+      {
+        accessorKey: 'pageCount',
+        header: ({ column }) => <SortHeader column={column}>{t('pageCount')}</SortHeader>,
+        cell: ({ row }) => (
+          <span className="tabular-nums text-muted-foreground">
+            {row.original.pageCount || '—'}
+          </span>
+        ),
+        meta: { hideOnTablet: true },
+        size: 90,
+      },
+      {
+        accessorKey: 'isbn',
+        header: () => (
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {t('isbn')}
+          </span>
+        ),
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-muted-foreground">
+            {row.original.isbn || '—'}
+          </span>
+        ),
+        enableSorting: false,
+        meta: { hideOnDesktop: true },
+        size: 140,
+      },
+      {
+        accessorKey: 'createdAt',
+        header: ({ column }) => <SortHeader column={column}>{t('addedOn')}</SortHeader>,
+        cell: ({ row }) => {
+          const date = new Date(row.original.createdAt)
+          return (
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {date.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </span>
+          )
+        },
+        meta: { hideOnDesktop: true },
+        size: 120,
+      },
+      {
+        id: 'actions',
+        header: () => null,
+        cell: ({ row }) => <RowActions book={row.original} />,
+        enableSorting: false,
+        enableHiding: false,
+        size: 50,
+      },
+    )
+
+    return cols
+  }, [selectable, selectedIds, books.length, onSelect, onSelectAll, t])
+
+  const table = useReactTable({
+    data: books,
+    columns,
+    state: { sorting, columnVisibility },
+    onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  })
+
+  const toggleableColumns = table
+    .getAllColumns()
+    .filter((col) => col.getCanHide() && col.id !== 'cover' && col.id !== 'actions')
 
   return (
-    <Card className="overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40">
-            <tr>
-              {selectable && (
-                <th className="w-10 px-4 py-3">
-                  <Checkbox
-                    checked={selectedIds.size === books.length && books.length > 0}
-                    onCheckedChange={onSelectAll}
-                  />
-                </th>
-              )}
-              <th className="w-12 px-4 py-3" />
-              <th className={thClass}>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1"
-                  onClick={() => onSort('title')}
-                >
-                  {t('titleColumn')}
-                  <SortIcon field="title" activeField={sortField} dir={sortDir} />
-                </button>
-              </th>
-              <th className={thClass}>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1"
-                  onClick={() => onSort('authorNames')}
-                >
-                  {t('author')}
-                  <SortIcon field="authorNames" activeField={sortField} dir={sortDir} />
-                </button>
-              </th>
-              <th className={cn(thClass, 'hidden md:table-cell')}>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1"
-                  onClick={() => onSort('publishedYear')}
-                >
-                  {t('year')}
-                  <SortIcon field="publishedYear" activeField={sortField} dir={sortDir} />
-                </button>
-              </th>
-              <th className={cn(thClass, 'hidden lg:table-cell')}>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1"
-                  onClick={() => onSort('pageCount')}
-                >
-                  {t('pageCount')}
-                  <SortIcon field="pageCount" activeField={sortField} dir={sortDir} />
-                </button>
-              </th>
-              <th className={cn(thClass, 'hidden lg:table-cell')}>{t('isbn')}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {books.map((book) => {
-              const cover = getCoverSrc(book)
-              const isSelected = selectedIds.has(book.id)
-              return (
-                <tr
-                  key={book.id}
-                  className={cn(
-                    'transition-colors hover:bg-muted/30',
-                    isSelected && 'bg-primary/5',
-                  )}
-                >
-                  {selectable && (
-                    <td className="px-4 py-2">
-                      <Checkbox checked={isSelected} onCheckedChange={() => onSelect(book.id)} />
-                    </td>
-                  )}
-                  <td className="px-4 py-2">
-                    {cover ? (
-                      <HoverCard openDelay={200} closeDelay={0}>
-                        <HoverCardTrigger asChild>
-                          <Link href={`/dashboard/books/${book.id}`}>
-                            <div className="h-10 w-7 overflow-hidden rounded bg-muted">
-                              <img src={cover} alt="" className="h-full w-full object-contain" />
-                            </div>
-                          </Link>
-                        </HoverCardTrigger>
-                        <HoverCardContent side="right" align="start" className="w-auto p-1">
-                          <img
-                            src={cover}
-                            alt={book.title}
-                            className="h-72 w-auto rounded object-contain"
-                          />
-                        </HoverCardContent>
-                      </HoverCard>
-                    ) : (
-                      <Link href={`/dashboard/books/${book.id}`}>
-                        <div className="h-10 w-7 overflow-hidden rounded">
-                          <BookCoverPlaceholder title={book.title} size="sm" />
-                        </div>
-                      </Link>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">
-                    <Link
-                      href={`/dashboard/books/${book.id}`}
-                      className="line-clamp-1 font-medium transition-colors hover:text-primary"
-                    >
-                      {book.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 text-muted-foreground">
-                    <span className="line-clamp-1">{book.authorNames}</span>
-                  </td>
-                  <td className="hidden px-4 py-2 text-muted-foreground md:table-cell">
-                    {book.publishedYear || '—'}
-                  </td>
-                  <td className="hidden px-4 py-2 text-muted-foreground lg:table-cell">
-                    {book.pageCount || '—'}
-                  </td>
-                  <td className="hidden px-4 py-2 font-mono text-xs text-muted-foreground lg:table-cell">
-                    {book.isbn || '—'}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Settings2 className="mr-1.5 h-3.5 w-3.5" />
+              {t('columns')}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            {toggleableColumns.map((column) => (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                checked={column.getIsVisible()}
+                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                className="capitalize"
+              >
+                {column.id === 'authorNames'
+                  ? t('author')
+                  : column.id === 'publishedYear'
+                    ? t('year')
+                    : column.id === 'pageCount'
+                      ? t('pageCount')
+                      : column.id === 'isbn'
+                        ? t('isbn')
+                        : column.id === 'createdAt'
+                          ? t('addedOn')
+                          : column.id === 'title'
+                            ? t('titleColumn')
+                            : column.id}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-    </Card>
+
+      <Card className="overflow-hidden rounded-lg py-0">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="border-b bg-muted/40 hover:bg-muted/40">
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta as
+                    | { hideOnMobile?: boolean; hideOnTablet?: boolean; hideOnDesktop?: boolean }
+                    | undefined
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
+                      className={cn(
+                        meta?.hideOnMobile && 'hidden md:table-cell',
+                        meta?.hideOnTablet && 'hidden lg:table-cell',
+                        meta?.hideOnDesktop && 'hidden xl:table-cell',
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => {
+                const isSelected = selectedIds.has(row.original.id)
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={isSelected ? 'selected' : undefined}
+                    className={cn('group transition-colors', isSelected && 'bg-primary/5')}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const meta = cell.column.columnDef.meta as
+                        | {
+                            hideOnMobile?: boolean
+                            hideOnTablet?: boolean
+                            hideOnDesktop?: boolean
+                          }
+                        | undefined
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            meta?.hideOnMobile && 'hidden md:table-cell',
+                            meta?.hideOnTablet && 'hidden lg:table-cell',
+                            meta?.hideOnDesktop && 'hidden xl:table-cell',
+                          )}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                )
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <EmptyState
+                    icon={BookOpen}
+                    title={t('noBooks')}
+                    description={t('startWithFirstBook')}
+                    compact
+                  />
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   )
 }

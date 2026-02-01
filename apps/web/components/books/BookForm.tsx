@@ -1,6 +1,14 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { EntityCombobox } from '@/components/ui/entity-combobox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,11 +24,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { plainTextToHtml } from '@/lib/html-utils'
-import { Loader2, Plus } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Check, Loader2, Plus, Search, Tag, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CoverUpload } from './CoverUpload'
 import type { BookLookupResult } from './ISBNLookup'
 import { ISBNLookup } from './ISBNLookup'
@@ -731,86 +740,19 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
             )}
           </div>
 
-          <div>
-            <Label>{t('categories')}</Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <label
-                  key={cat.id}
-                  className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
-                    formData.categoryIds?.includes(cat.id)
-                      ? 'border-primary bg-primary/10'
-                      : 'border-input hover:bg-accent'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={formData.categoryIds?.includes(cat.id) || false}
-                    onChange={(e) => {
-                      const newIds = e.target.checked
-                        ? [...(formData.categoryIds || []), cat.id]
-                        : (formData.categoryIds || []).filter((id) => id !== cat.id)
-                      setFormData((prev) => ({ ...prev, categoryIds: newIds }))
-                    }}
-                  />
-                  {cat.name}
-                </label>
-              ))}
-              {categories.length === 0 && (
-                <p className="text-sm text-muted-foreground">{t('noCategories')}</p>
-              )}
-              <Link href="/dashboard/categories">
-                <Button type="button" variant="outline" size="sm" className="h-8 w-8 p-0">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
+          <CategoryPicker
+            categories={categories}
+            selectedIds={formData.categoryIds || []}
+            onChange={(ids) => setFormData((prev) => ({ ...prev, categoryIds: ids }))}
+            onCategoryCreated={(cat) => setCategories((prev) => [...prev, cat])}
+          />
 
-          <div>
-            <Label>{t('collections')}</Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {collections.map((col) => (
-                <label
-                  key={col.id}
-                  className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
-                    formData.collectionIds?.includes(col.id)
-                      ? 'border-primary bg-primary/10'
-                      : 'border-input hover:bg-accent'
-                  }`}
-                  style={{
-                    borderColor:
-                      formData.collectionIds?.includes(col.id) && col.color ? col.color : undefined,
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={formData.collectionIds?.includes(col.id) || false}
-                    onChange={(e) => {
-                      const newIds = e.target.checked
-                        ? [...(formData.collectionIds || []), col.id]
-                        : (formData.collectionIds || []).filter((id) => id !== col.id)
-                      setFormData((prev) => ({ ...prev, collectionIds: newIds }))
-                    }}
-                  />
-                  {col.color && (
-                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: col.color }} />
-                  )}
-                  {col.name}
-                </label>
-              ))}
-              {collections.length === 0 && (
-                <p className="text-sm text-muted-foreground">{t('noCollections')}</p>
-              )}
-              <Link href="/dashboard/collections">
-                <Button type="button" variant="outline" size="sm" className="h-8 w-8 p-0">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
+          <CollectionPicker
+            collections={collections}
+            selectedIds={formData.collectionIds || []}
+            onChange={(ids) => setFormData((prev) => ({ ...prev, collectionIds: ids }))}
+            onCollectionCreated={(col) => setCollections((prev) => [...prev, col])}
+          />
         </TabsContent>
       </Tabs>
 
@@ -824,5 +766,450 @@ export function BookForm({ initialData, mode = 'create' }: BookFormProps) {
         </Button>
       </div>
     </form>
+  )
+}
+
+/* ─── Category Picker ──────────────────────────────────────────── */
+
+const PRESET_COLORS = [
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#06b6d4',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
+  '#6b7280',
+]
+
+function CategoryPicker({
+  categories,
+  selectedIds,
+  onChange,
+  onCategoryCreated,
+}: {
+  categories: Category[]
+  selectedIds: number[]
+  onChange: (ids: number[]) => void
+  onCategoryCreated: (cat: Category) => void
+}) {
+  const t = useTranslations('books')
+  const tc = useTranslations('common')
+  const { addToast } = useToast()
+  const [search, setSearch] = useState('')
+  const [showCreate, setShowCreate] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const filtered = search
+    ? categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+    : categories
+
+  const selectedCats = categories.filter((c) => selectedIds.includes(c.id))
+
+  const toggle = (id: number) => {
+    onChange(selectedIds.includes(id) ? selectedIds.filter((i) => i !== id) : [...selectedIds, id])
+  }
+
+  const remove = (id: number) => {
+    onChange(selectedIds.filter((i) => i !== id))
+  }
+
+  const handleCreate = async () => {
+    if (!newName.trim()) return
+    setIsCreating(true)
+    try {
+      const res = await fetch(`${API_URL}/api/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: newName.trim() }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const cat = data.category
+        onCategoryCreated(cat)
+        onChange([...selectedIds, cat.id])
+        setNewName('')
+        setShowCreate(false)
+      }
+    } catch {
+      addToast('Error', 'error')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>{t('categories')}</Label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1 px-2 text-xs text-muted-foreground"
+          onClick={() => setShowCreate(true)}
+        >
+          <Plus className="h-3 w-3" />
+          {t('quickAddCategory')}
+        </Button>
+      </div>
+
+      {/* Selected badges */}
+      {selectedCats.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedCats.map((cat) => (
+            <Badge key={cat.id} variant="secondary" className="gap-1 py-1 pl-2.5 pr-1 text-xs">
+              <Tag className="h-3 w-3 opacity-50" />
+              {cat.name}
+              <button
+                type="button"
+                onClick={() => remove(cat.id)}
+                className="ml-0.5 rounded-full p-0.5 transition-colors hover:bg-foreground/10"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Search + List */}
+      <div className="rounded-lg border bg-card">
+        {categories.length > 5 && (
+          <div className="border-b px-3 py-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('searchCategories')}
+                className="w-full bg-transparent py-1 pl-7 pr-2 text-sm outline-none placeholder:text-muted-foreground/60"
+              />
+            </div>
+          </div>
+        )}
+        <div className="max-h-40 overflow-y-auto p-1">
+          {filtered.length > 0 ? (
+            filtered.map((cat) => {
+              const isSelected = selectedIds.includes(cat.id)
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => toggle(cat.id)}
+                  className={cn(
+                    'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm transition-colors',
+                    isSelected
+                      ? 'bg-primary/10 text-foreground'
+                      : 'text-foreground/80 hover:bg-muted',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors',
+                      isSelected
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-input',
+                    )}
+                  >
+                    {isSelected && <Check className="h-3 w-3" />}
+                  </div>
+                  {cat.name}
+                </button>
+              )
+            })
+          ) : categories.length === 0 ? (
+            <p className="px-3 py-4 text-center text-sm text-muted-foreground">
+              {t('noCategories')}
+            </p>
+          ) : (
+            <p className="px-3 py-3 text-center text-xs text-muted-foreground">
+              {t('noBooksFiltered')}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Quick-create dialog */}
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('quickAddCategory')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="new-cat-name">{t('categoryNameLabel')}</Label>
+              <Input
+                id="new-cat-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Fiction, Science, History..."
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleCreate()
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>
+              {tc('cancel')}
+            </Button>
+            <Button type="button" onClick={handleCreate} disabled={isCreating || !newName.trim()}>
+              {isCreating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              {isCreating ? t('creating') : tc('create')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+/* ─── Collection Picker ────────────────────────────────────────── */
+
+function CollectionPicker({
+  collections,
+  selectedIds,
+  onChange,
+  onCollectionCreated,
+}: {
+  collections: Collection[]
+  selectedIds: number[]
+  onChange: (ids: number[]) => void
+  onCollectionCreated: (col: Collection) => void
+}) {
+  const t = useTranslations('books')
+  const tc = useTranslations('common')
+  const { addToast } = useToast()
+  const [search, setSearch] = useState('')
+  const [showCreate, setShowCreate] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newColor, setNewColor] = useState('#3b82f6')
+  const [isCreating, setIsCreating] = useState(false)
+
+  const filtered = search
+    ? collections.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+    : collections
+
+  const selectedCols = collections.filter((c) => selectedIds.includes(c.id))
+
+  const toggle = (id: number) => {
+    onChange(selectedIds.includes(id) ? selectedIds.filter((i) => i !== id) : [...selectedIds, id])
+  }
+
+  const remove = (id: number) => {
+    onChange(selectedIds.filter((i) => i !== id))
+  }
+
+  const handleCreate = async () => {
+    if (!newName.trim()) return
+    setIsCreating(true)
+    try {
+      const res = await fetch(`${API_URL}/api/collections`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: newName.trim(), color: newColor }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const col = data.collection
+        onCollectionCreated(col)
+        onChange([...selectedIds, col.id])
+        setNewName('')
+        setNewColor('#3b82f6')
+        setShowCreate(false)
+      }
+    } catch {
+      addToast('Error', 'error')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>{t('collections')}</Label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1 px-2 text-xs text-muted-foreground"
+          onClick={() => setShowCreate(true)}
+        >
+          <Plus className="h-3 w-3" />
+          {t('quickAddCollection')}
+        </Button>
+      </div>
+
+      {/* Selected badges */}
+      {selectedCols.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedCols.map((col) => (
+            <Badge
+              key={col.id}
+              variant="outline"
+              className="gap-1.5 py-1 pl-2 pr-1 text-xs"
+              style={{
+                borderColor: col.color || undefined,
+                backgroundColor: col.color ? `${col.color}10` : undefined,
+              }}
+            >
+              {col.color && (
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: col.color }} />
+              )}
+              {col.name}
+              <button
+                type="button"
+                onClick={() => remove(col.id)}
+                className="ml-0.5 rounded-full p-0.5 transition-colors hover:bg-foreground/10"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Search + List */}
+      <div className="rounded-lg border bg-card">
+        {collections.length > 5 && (
+          <div className="border-b px-3 py-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('searchCollections')}
+                className="w-full bg-transparent py-1 pl-7 pr-2 text-sm outline-none placeholder:text-muted-foreground/60"
+              />
+            </div>
+          </div>
+        )}
+        <div className="max-h-40 overflow-y-auto p-1">
+          {filtered.length > 0 ? (
+            filtered.map((col) => {
+              const isSelected = selectedIds.includes(col.id)
+              return (
+                <button
+                  key={col.id}
+                  type="button"
+                  onClick={() => toggle(col.id)}
+                  className={cn(
+                    'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm transition-colors',
+                    isSelected
+                      ? 'bg-primary/10 text-foreground'
+                      : 'text-foreground/80 hover:bg-muted',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors',
+                      isSelected
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-input',
+                    )}
+                    style={
+                      isSelected && col.color
+                        ? { borderColor: col.color, backgroundColor: col.color }
+                        : undefined
+                    }
+                  >
+                    {isSelected && <Check className="h-3 w-3" />}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {col.color && (
+                      <span
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: col.color }}
+                      />
+                    )}
+                    {col.name}
+                  </div>
+                </button>
+              )
+            })
+          ) : collections.length === 0 ? (
+            <p className="px-3 py-4 text-center text-sm text-muted-foreground">
+              {t('noCollections')}
+            </p>
+          ) : (
+            <p className="px-3 py-3 text-center text-xs text-muted-foreground">
+              {t('noBooksFiltered')}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Quick-create dialog */}
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('quickAddCollection')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new-col-name">{t('collectionNameLabel')}</Label>
+              <Input
+                id="new-col-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Favorites, To Read, Classics..."
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleCreate()
+                  }
+                }}
+              />
+            </div>
+            <div>
+              <Label>{t('colorLabel')}</Label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {PRESET_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setNewColor(color)}
+                    className={cn(
+                      'h-7 w-7 rounded-full transition-all',
+                      newColor !== color && 'hover:scale-110',
+                    )}
+                    style={{
+                      backgroundColor: color,
+                      ...(newColor === color
+                        ? { boxShadow: `0 0 0 2px var(--background), 0 0 0 4px ${color}` }
+                        : {}),
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>
+              {tc('cancel')}
+            </Button>
+            <Button type="button" onClick={handleCreate} disabled={isCreating || !newName.trim()}>
+              {isCreating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              {isCreating ? t('creating') : tc('create')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }

@@ -35,6 +35,7 @@ import {
   User,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 import Link from 'next/link'
 import { use, useCallback, useEffect, useRef, useState } from 'react'
 
@@ -182,9 +183,15 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
       <div className="flex flex-col gap-8 lg:flex-row">
         <div className="mx-auto w-48 shrink-0 sm:w-56 lg:mx-0 lg:w-64">
-          <div className="aspect-[2/3] w-full overflow-hidden rounded-xl border bg-muted shadow-lg">
+          <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border bg-muted shadow-lg">
             {coverSrc ? (
-              <img src={coverSrc} alt={book.title} className="h-full w-full object-contain" />
+              <Image
+                src={coverSrc}
+                alt={book.title}
+                fill
+                className="object-contain"
+                sizes="(max-width: 640px) 192px, (max-width: 1024px) 224px, 256px"
+              />
             ) : (
               <BookCoverPlaceholder
                 title={book.title}

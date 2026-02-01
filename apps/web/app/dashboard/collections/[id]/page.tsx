@@ -43,6 +43,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { ArrowLeft, Book, Edit, GripVertical, Loader2, Sparkles, Trash2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useCallback, useEffect, useRef, useState } from 'react'
@@ -113,10 +114,10 @@ function SortableBookCard({
 
           <Link
             href={`/dashboard/books/${book.id}`}
-            className="h-24 w-16 shrink-0 overflow-hidden rounded-md bg-muted"
+            className="relative h-24 w-16 shrink-0 overflow-hidden rounded-md bg-muted"
           >
             {coverSrc ? (
-              <img src={coverSrc} alt={book.title} className="h-full w-full object-cover" />
+              <Image src={coverSrc} alt={book.title} fill className="object-cover" sizes="64px" />
             ) : (
               <BookCoverPlaceholder title={book.title} author={book.authorNames} size="sm" />
             )}

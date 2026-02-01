@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { type RecentlyViewedBook, getRecentlyViewed } from '@/hooks/use-recently-viewed'
 import { BookMarked, BookOpen, Building2, MapPin, TrendingUp, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
@@ -175,12 +176,14 @@ export default function DashboardPage() {
                       href={`/dashboard/books/${item.book.id}`}
                       className="-mx-2 flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-accent"
                     >
-                      <div className="h-16 w-12 shrink-0 overflow-hidden rounded bg-muted">
+                      <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded bg-muted">
                         {src ? (
-                          <img
+                          <Image
                             src={src}
                             alt={item.book.title}
-                            className="h-full w-full object-cover"
+                            fill
+                            className="object-cover"
+                            sizes="48px"
                           />
                         ) : (
                           <BookCoverPlaceholder title={item.book.title} size="sm" />
@@ -230,9 +233,15 @@ export default function DashboardPage() {
                       href={`/dashboard/books/${book.id}`}
                       className="-mx-2 flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-accent"
                     >
-                      <div className="h-16 w-12 shrink-0 overflow-hidden rounded bg-muted">
+                      <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded bg-muted">
                         {src ? (
-                          <img src={src} alt={book.title} className="h-full w-full object-cover" />
+                          <Image
+                            src={src}
+                            alt={book.title}
+                            fill
+                            className="object-cover"
+                            sizes="48px"
+                          />
                         ) : (
                           <BookCoverPlaceholder title={book.title} size="sm" />
                         )}
@@ -266,9 +275,15 @@ export default function DashboardPage() {
                     href={`/dashboard/books/${book.id}`}
                     className="group flex w-20 shrink-0 flex-col items-center gap-1.5"
                   >
-                    <div className="h-24 w-16 overflow-hidden rounded-md bg-muted shadow-sm transition-transform group-hover:scale-105">
+                    <div className="relative h-24 w-16 overflow-hidden rounded-md bg-muted shadow-sm transition-transform group-hover:scale-105">
                       {src ? (
-                        <img src={src} alt={book.title} className="h-full w-full object-cover" />
+                        <Image
+                          src={src}
+                          alt={book.title}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
                       ) : (
                         <BookCoverPlaceholder title={book.title} size="sm" />
                       )}

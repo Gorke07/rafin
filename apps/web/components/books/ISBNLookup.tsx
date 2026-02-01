@@ -20,6 +20,7 @@ import {
 import { BookOpen, Image as ImageIcon, Loader2, ScanLine, Search } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { useCallback, useState } from 'react'
 
 const BarcodeScanner = dynamic(
@@ -347,9 +348,15 @@ export function ISBNLookup({ onBookFound, onError }: ISBNLookupProps) {
                 className="flex w-full items-start gap-3 rounded-md border p-3 text-left transition-colors hover:bg-accent hover:border-primary/40"
               >
                 {/* Thumbnail */}
-                <div className="h-16 w-11 flex-shrink-0 overflow-hidden rounded bg-muted">
+                <div className="relative h-16 w-11 flex-shrink-0 overflow-hidden rounded bg-muted">
                   {book.coverUrl ? (
-                    <img src={book.coverUrl} alt="" className="h-full w-full object-cover" />
+                    <Image
+                      src={book.coverUrl}
+                      alt={book.title}
+                      fill
+                      className="object-cover"
+                      sizes="44px"
+                    />
                   ) : (
                     <div className="flex h-full items-center justify-center">
                       <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
