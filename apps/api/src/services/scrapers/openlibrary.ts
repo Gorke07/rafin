@@ -114,7 +114,7 @@ export const openLibraryScraper: BookScraper = {
   async searchByTitle(query: string): Promise<BookLookupResult[]> {
     try {
       const response = await fetch(
-        `https://openlibrary.org/search.json?title=${encodeURIComponent(query)}&limit=10`,
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10`,
       )
 
       if (!response.ok) {

@@ -8,11 +8,12 @@ import {
   reviews,
   userBooks,
 } from '@rafin/db'
-import { and, eq, isNull } from 'drizzle-orm'
+import { and, eq, ilike, isNull } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
 import { auth } from '../lib/auth'
 import { type ImportResult, type ParsedImportBook, parseGoodreadsCSV } from '../services/csv-parser'
 import { downloadAndProcessCover } from '../services/image'
+import { normalizePublisher } from '../services/normalize-publisher'
 import { lookupBookFromAllSources } from '../services/scrapers'
 
 async function getOrCreateAuthor(name: string): Promise<number> {
@@ -28,11 +29,13 @@ async function getOrCreateAuthor(name: string): Promise<number> {
   return result[0].id
 }
 
-async function getOrCreatePublisher(name: string): Promise<number> {
+async function getOrCreatePublisher(rawName: string): Promise<number> {
+  const name = normalizePublisher(rawName)
+
   const existing = await db
     .select({ id: publishers.id })
     .from(publishers)
-    .where(eq(publishers.name, name))
+    .where(ilike(publishers.name, name))
     .limit(1)
 
   if (existing.length > 0) return existing[0].id

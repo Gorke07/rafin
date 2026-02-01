@@ -40,14 +40,16 @@ function parseSearchResults(html: string): BookLookupResult[] {
     let language: string | undefined
     if (productInfo) {
       const parts = productInfo.split('|').map((p) => p.trim())
-      // First part is usually ISBN (13 digits)
-      if (parts[0] && /^\d{10,13}$/.test(parts[0].replace(/\s/g, ''))) {
-        isbn = parts[0].replace(/\s/g, '')
+      for (const part of parts) {
+        const clean = part.replace(/\s/g, '')
+        if (/^\d{10,13}$/.test(clean) && !isbn) {
+          isbn = clean
+        } else if (/^\d+$/.test(clean) && !pageCount) {
+          pageCount = Number.parseInt(clean) || undefined
+        } else if (part && !language && !/^\d+$/.test(clean)) {
+          language = part
+        }
       }
-      // Second part is language
-      if (parts[1]) language = parts[1]
-      // Third part is page count
-      if (parts[2]) pageCount = Number.parseInt(parts[2]) || undefined
     }
 
     if (title) {

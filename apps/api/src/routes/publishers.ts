@@ -1,5 +1,6 @@
 import { bookPublishers, books, db, publishers } from '@rafin/db'
-import { and, count, desc, eq, isNull, like } from 'drizzle-orm'
+import { and, count, desc, eq, ilike, isNull, like } from 'drizzle-orm'
+import { normalizePublisher } from '../services/normalize-publisher'
 import { Elysia, t } from 'elysia'
 
 export const publisherRoutes = new Elysia({ prefix: '/api/publishers' })
@@ -74,10 +75,12 @@ export const publisherRoutes = new Elysia({ prefix: '/api/publishers' })
   .post(
     '/',
     async ({ body }) => {
+      const name = normalizePublisher(body.name)
+
       const existing = await db
         .select()
         .from(publishers)
-        .where(eq(publishers.name, body.name))
+        .where(ilike(publishers.name, name))
         .limit(1)
 
       if (existing.length > 0) {
@@ -87,7 +90,7 @@ export const publisherRoutes = new Elysia({ prefix: '/api/publishers' })
       const result = await db
         .insert(publishers)
         .values({
-          name: body.name,
+          name,
           website: body.website || null,
         })
         .returning()

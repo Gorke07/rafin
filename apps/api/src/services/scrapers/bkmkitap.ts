@@ -89,7 +89,10 @@ export const bkmkitapScraper: BookScraper = {
       const $search = cheerio.load(searchHtml)
 
       const productLink = $search('.product-item a.product-img').first().attr('href')
-      if (!productLink) return null
+      if (!productLink) {
+        console.warn('BKM Kitap: No product found - CSS selectors may be outdated')
+        return null
+      }
 
       const fullUrl = productLink.startsWith('http')
         ? productLink

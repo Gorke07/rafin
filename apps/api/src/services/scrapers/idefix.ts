@@ -35,6 +35,26 @@ interface IdefixProductDetail {
   images?: Array<{ src: string }>
 }
 
+function normalizeLanguage(lang: string): string {
+  const map: Record<string, string> = {
+    türkçe: 'tr',
+    turkce: 'tr',
+    ingilizce: 'en',
+    İngilizce: 'en',
+    almanca: 'de',
+    fransızca: 'fr',
+    fransizca: 'fr',
+    ispanyolca: 'es',
+    italyanca: 'it',
+    arapça: 'ar',
+    arapca: 'ar',
+    rusça: 'ru',
+    rusca: 'ru',
+  }
+  const lower = lang.toLowerCase().trim()
+  return map[lower] || lang
+}
+
 function getNextData(html: string): unknown {
   const $ = cheerio.load(html)
   const script = $('#__NEXT_DATA__').html()
@@ -66,11 +86,18 @@ function parseDescription(html: string): {
   const pageMatch = text.match(/sayfa\s*sayı?s[ıi]\s*:?\s*(\d+)/i)
   if (pageMatch) result.pageCount = Number.parseInt(pageMatch[1])
 
-  const yearMatch = text.match(/bask[ıi]\s*y[ıi]l[ıi]\s*:?\s*(\d{4})/i) || text.match(/(\d{4})/)
-  if (yearMatch) result.publishedYear = Number.parseInt(yearMatch[1])
+  const yearMatch =
+    text.match(/bask[ıi]\s*y[ıi]l[ıi]\s*:?\s*(\d{4})/i) ||
+    text.match(/yay[ıi](?:n|m)lan[a-zıöüçşğ]*\s*:?\s*(\d{4})/i)
+  if (yearMatch) {
+    const year = Number.parseInt(yearMatch[1] || yearMatch[2])
+    if (year >= 1900 && year <= new Date().getFullYear()) {
+      result.publishedYear = year
+    }
+  }
 
   const langMatch = text.match(/dil[i]?\s*:?\s*([\wçğıöşüÇĞİÖŞÜ]+)/i)
-  if (langMatch) result.language = langMatch[1]
+  if (langMatch) result.language = normalizeLanguage(langMatch[1])
 
   if (text.toLowerCase().includes('ciltsiz') || text.toLowerCase().includes('karton')) {
     result.bindingType = 'paperback'
@@ -138,7 +165,7 @@ export const idefixScraper: BookScraper = {
             else if (prop.valueText.toLowerCase().includes('ciltli')) bindingType = 'hardcover'
           }
           if (prop.text.toLowerCase().includes('dil') && !language) {
-            language = prop.valueText
+            language = normalizeLanguage(prop.valueText)
           }
         }
       }
@@ -232,7 +259,7 @@ export const idefixScraper: BookScraper = {
         let bindingType: 'paperback' | 'hardcover' | 'ebook' | undefined
         if (variant.properties) {
           for (const prop of variant.properties) {
-            if (prop.text.toLowerCase().includes('dil')) language = prop.valueText
+            if (prop.text.toLowerCase().includes('dil')) language = normalizeLanguage(prop.valueText)
             if (prop.text.toLowerCase().includes('format')) {
               if (prop.valueText.toLowerCase().includes('ciltsiz')) bindingType = 'paperback'
               else if (prop.valueText.toLowerCase().includes('ciltli')) bindingType = 'hardcover'
