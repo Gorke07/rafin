@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import { logger } from '../../lib/logger'
 import { sanitizeDescription } from '../sanitize-html'
 import type { BookLookupResult, BookScraper } from './types'
 
@@ -155,7 +156,7 @@ export const kitapyurduScraper: BookScraper = {
       if (!response.ok) return null
       return parseProductPage(await response.text(), '')
     } catch (error) {
-      console.error('Kitapyurdu lookupByUrl error:', error)
+      logger.error({ error }, 'Kitapyurdu lookupByUrl error')
       return null
     }
   },
@@ -167,7 +168,7 @@ export const kitapyurduScraper: BookScraper = {
       if (!response.ok) return []
       return parseSearchResults(await response.text())
     } catch (error) {
-      console.error('Kitapyurdu title search error:', error)
+      logger.error({ error }, 'Kitapyurdu title search error')
       return []
     }
   },

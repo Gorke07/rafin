@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia'
+import { logger } from '../lib/logger'
 import {
   type BookSource,
   availableSources,
@@ -55,7 +56,7 @@ export const bookLookupRoutes = new Elysia({ prefix: '/api/book-lookup' })
 
         return { book: result.result, source: result.source }
       } catch (error) {
-        console.error('Book lookup error:', error)
+        logger.error({ error }, 'Book lookup error')
         set.status = 500
         return { error: 'Failed to lookup book' }
       }
@@ -88,7 +89,7 @@ export const bookLookupRoutes = new Elysia({ prefix: '/api/book-lookup' })
 
         return { books: results }
       } catch (error) {
-        console.error('Book title search error:', error)
+        logger.error({ error }, 'Book title search error')
         set.status = 500
         return { error: 'Failed to search books' }
       }
@@ -121,7 +122,7 @@ export const bookLookupRoutes = new Elysia({ prefix: '/api/book-lookup' })
 
         return { book: result }
       } catch (error) {
-        console.error('Book detail lookup error:', error)
+        logger.error({ error }, 'Book detail lookup error')
         set.status = 500
         return { error: 'Failed to lookup book details' }
       }

@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import { logger } from '../../lib/logger'
 import { sanitizeDescription } from '../sanitize-html'
 import type { BookLookupResult, BookScraper } from './types'
 
@@ -185,7 +186,7 @@ export const idefixScraper: BookScraper = {
         bindingType,
       }
     } catch (error) {
-      console.error('Idefix lookup error:', error)
+      logger.error({ error }, 'Idefix lookup error')
       return null
     }
   },
@@ -226,7 +227,7 @@ export const idefixScraper: BookScraper = {
         bindingType: descInfo.bindingType,
       }
     } catch (error) {
-      console.error('Idefix lookupByUrl error:', error)
+      logger.error({ error }, 'Idefix lookupByUrl error')
       return null
     }
   },
@@ -259,7 +260,8 @@ export const idefixScraper: BookScraper = {
         let bindingType: 'paperback' | 'hardcover' | 'ebook' | undefined
         if (variant.properties) {
           for (const prop of variant.properties) {
-            if (prop.text.toLowerCase().includes('dil')) language = normalizeLanguage(prop.valueText)
+            if (prop.text.toLowerCase().includes('dil'))
+              language = normalizeLanguage(prop.valueText)
             if (prop.text.toLowerCase().includes('format')) {
               if (prop.valueText.toLowerCase().includes('ciltsiz')) bindingType = 'paperback'
               else if (prop.valueText.toLowerCase().includes('ciltli')) bindingType = 'hardcover'
@@ -285,7 +287,7 @@ export const idefixScraper: BookScraper = {
 
       return results
     } catch (error) {
-      console.error('Idefix title search error:', error)
+      logger.error({ error }, 'Idefix title search error')
       return []
     }
   },

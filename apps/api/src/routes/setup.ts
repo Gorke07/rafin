@@ -2,6 +2,7 @@ import { db, user } from '@rafin/db'
 import { count } from 'drizzle-orm'
 import { Elysia, t } from 'elysia'
 import { auth } from '../lib/auth'
+import { logger } from '../lib/logger'
 
 export const setupRoutes = new Elysia({ prefix: '/api/setup' })
   .get('/status', async () => {
@@ -38,7 +39,7 @@ export const setupRoutes = new Elysia({ prefix: '/api/setup' })
 
         return { success: true }
       } catch (error) {
-        console.error('Setup error:', error)
+        logger.error({ error }, 'Setup error')
         set.status = 500
         return { error: 'Failed to create admin account' }
       }

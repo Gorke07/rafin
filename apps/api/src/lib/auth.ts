@@ -1,14 +1,14 @@
 import { db } from '@rafin/db/client'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { logger } from './logger'
 
 const DEFAULT_SECRET = 'your-secret-key-change-in-production'
 const secret = process.env.BETTER_AUTH_SECRET || DEFAULT_SECRET
 
 if (secret === DEFAULT_SECRET && process.env.NODE_ENV === 'production') {
-  console.error(
-    '[rafin] FATAL: BETTER_AUTH_SECRET is using the default value. ' +
-      'Generate a secure secret with: openssl rand -hex 32',
+  logger.fatal(
+    'BETTER_AUTH_SECRET is using the default value. Generate a secure secret with: openssl rand -hex 32',
   )
   process.exit(1)
 }

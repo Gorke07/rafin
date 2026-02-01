@@ -1,9 +1,17 @@
 import { cors } from '@elysiajs/cors'
 import { staticPlugin } from '@elysiajs/static'
+import { db } from '@rafin/db/client'
+import { sql } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { auth, trustedOrigins } from './lib/auth'
+import { validateEnv } from './lib/env'
+import { logger } from './lib/logger'
+
+validateEnv()
 import { authMiddleware } from './middleware/auth'
 import { rateLimitMiddleware } from './middleware/rate-limit'
+import { requestLogger } from './middleware/request-logger'
+import { securityHeaders } from './middleware/security-headers'
 import { authorRoutes } from './routes/authors'
 import { bookLookupRoutes } from './routes/book-lookup'
 import { bookNotesRoutes } from './routes/book-notes'
@@ -23,6 +31,7 @@ import { userBookRoutes } from './routes/user-books'
 import { userSettingsRoutes } from './routes/user-settings'
 
 const app = new Elysia()
+  .use(securityHeaders)
   .use(
     cors({
       origin: trustedOrigins,
@@ -37,6 +46,7 @@ const app = new Elysia()
     }),
   )
   .use(rateLimitMiddleware)
+  .use(requestLogger)
   .mount(auth.handler)
   .use(setupRoutes)
   .use(bookLookupRoutes)
@@ -57,17 +67,34 @@ const app = new Elysia()
   .use(userSettingsRoutes)
   .use(authMiddleware)
   .get('/', () => ({ message: 'Rafin API is running' }))
-  .get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))
-  .onRequest(({ request }) => {
-    const url = new URL(request.url)
-    if (url.pathname !== '/health') {
-      console.log(`[${new Date().toISOString()}] ${request.method} ${url.pathname}`)
+  .get('/health', async ({ set }) => {
+    const checks: Record<string, { status: string; message?: string }> = {}
+
+    try {
+      await db.execute(sql`SELECT 1`)
+      checks.database = { status: 'healthy' }
+    } catch (err) {
+      checks.database = {
+        status: 'unhealthy',
+        message: err instanceof Error ? err.message : 'Connection failed',
+      }
+    }
+
+    const allHealthy = Object.values(checks).every((c) => c.status === 'healthy')
+
+    if (!allHealthy) {
+      set.status = 503
+    }
+
+    return {
+      status: allHealthy ? 'ok' : 'degraded',
+      timestamp: new Date().toISOString(),
+      checks,
     }
   })
   .onError(({ code, error, request, set }) => {
     const url = new URL(request.url)
     const message = 'message' in error ? error.message : String(error)
-    console.error(`[${new Date().toISOString()}] ERROR ${request.method} ${url.pathname}:`, message)
 
     if (code === 'NOT_FOUND') {
       set.status = 404
@@ -79,6 +106,16 @@ const app = new Elysia()
       return { error: 'Validation failed', details: message }
     }
 
+    logger.error(
+      {
+        method: request.method,
+        path: url.pathname,
+        error: message,
+        code,
+      },
+      'Unhandled error',
+    )
+
     set.status = 500
     return { error: 'Internal server error' }
   })
@@ -87,6 +124,16 @@ const app = new Elysia()
     hostname: '0.0.0.0',
   })
 
-console.log(`[rafin] API running at ${app.server?.hostname}:${app.server?.port}`)
+logger.info({ host: app.server?.hostname, port: app.server?.port }, 'Rafin API started')
+
+function gracefulShutdown(signal: string) {
+  logger.info({ signal }, 'Shutdown signal received, closing server...')
+  app.stop()
+  logger.info('Server closed')
+  process.exit(0)
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 
 export type App = typeof app

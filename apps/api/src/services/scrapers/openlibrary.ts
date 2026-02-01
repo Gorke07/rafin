@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger'
 import { sanitizeDescription } from '../sanitize-html'
 import type { BookLookupResult, BookScraper } from './types'
 
@@ -106,7 +107,7 @@ export const openLibraryScraper: BookScraper = {
         coverUrl: bookData.cover?.medium || bookData.cover?.large,
       }
     } catch (error) {
-      console.error('OpenLibrary lookup error:', error)
+      logger.error({ error }, 'OpenLibrary lookup error')
       return null
     }
   },
@@ -141,7 +142,7 @@ export const openLibraryScraper: BookScraper = {
             : undefined,
         }))
     } catch (error) {
-      console.error('OpenLibrary title search error:', error)
+      logger.error({ error }, 'OpenLibrary title search error')
       return []
     }
   },

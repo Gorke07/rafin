@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import { logger } from '../../lib/logger'
 import { sanitizeDescription } from '../sanitize-html'
 import type { BookLookupResult, BookScraper } from './types'
 
@@ -90,7 +91,7 @@ export const bkmkitapScraper: BookScraper = {
 
       const productLink = $search('.product-item a.product-img').first().attr('href')
       if (!productLink) {
-        console.warn('BKM Kitap: No product found - CSS selectors may be outdated')
+        logger.warn('BKM Kitap: No product found - CSS selectors may be outdated')
         return null
       }
 
@@ -103,7 +104,7 @@ export const bkmkitapScraper: BookScraper = {
 
       return parseProductPage(await productResponse.text(), isbn)
     } catch (error) {
-      console.error('BKM Kitap lookup error:', error)
+      logger.error({ error }, 'BKM Kitap lookup error')
       return null
     }
   },
@@ -115,7 +116,7 @@ export const bkmkitapScraper: BookScraper = {
       if (!response.ok) return null
       return parseProductPage(await response.text(), '')
     } catch (error) {
-      console.error('BKM Kitap lookupByUrl error:', error)
+      logger.error({ error }, 'BKM Kitap lookupByUrl error')
       return null
     }
   },
@@ -161,7 +162,7 @@ export const bkmkitapScraper: BookScraper = {
 
       return results
     } catch (error) {
-      console.error('BKM Kitap title search error:', error)
+      logger.error({ error }, 'BKM Kitap title search error')
       return []
     }
   },

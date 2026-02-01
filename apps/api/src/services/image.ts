@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import sharp from 'sharp'
+import { logger } from '../lib/logger'
 
 const UPLOAD_DIR = 'uploads/covers'
 
@@ -21,7 +22,7 @@ export async function downloadAndProcessCover(url: string): Promise<ProcessedIma
     const buffer = Buffer.from(await response.arrayBuffer())
     return processAndSaveCover(buffer)
   } catch (error) {
-    console.error('Failed to download cover:', error)
+    logger.error({ error }, 'Failed to download cover')
     return null
   }
 }

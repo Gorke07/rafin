@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger'
 import { sanitizeDescription } from '../sanitize-html'
 import type { BookLookupResult, BookScraper } from './types'
 
@@ -63,7 +64,7 @@ export const googleBooksScraper: BookScraper = {
       result.isbn = result.isbn || isbn
       return result
     } catch (error) {
-      console.error('Google Books lookup error:', error)
+      logger.error({ error }, 'Google Books lookup error')
       return null
     }
   },
@@ -86,7 +87,7 @@ export const googleBooksScraper: BookScraper = {
 
       return data.items.map(parseGoogleBook)
     } catch (error) {
-      console.error('Google Books title search error:', error)
+      logger.error({ error }, 'Google Books title search error')
       return []
     }
   },
