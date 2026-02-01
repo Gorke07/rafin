@@ -30,6 +30,7 @@ npm-debug.log*
 
 # Database
 postgres_data/
+backups/
 
 # Uploads
 apps/api/uploads/*

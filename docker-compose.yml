@@ -57,3 +57,4 @@ services:
 volumes:
   postgres_data:
   api_uploads:
+  db_backups:
