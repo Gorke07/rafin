@@ -8,6 +8,13 @@
       "when": 1769871459555,
       "tag": "0000_stiff_callisto",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769965822411,
+      "tag": "0001_open_expediter",
+      "breakpoints": true
     }
   ]
 }

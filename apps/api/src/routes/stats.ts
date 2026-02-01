@@ -1,6 +1,19 @@
-import { authors, books, db, locations, publishers, reviews, userBooks } from '@rafin/db'
-import { and, avg, count, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm'
+import {
+  authors,
+  bookCategories,
+  books,
+  categories,
+  db,
+  locations,
+  publishers,
+  readingGoals,
+  reviews,
+  userBooks,
+} from '@rafin/db'
+import { and, avg, count, desc, eq, gte, isNotNull, isNull, sql, sum } from 'drizzle-orm'
 import { Elysia } from 'elysia'
+import { auth } from '../lib/auth'
+import { logger } from '../lib/logger'
 
 export const statsRoutes = new Elysia({ prefix: '/api/stats' })
   .get('/overview', async () => {
@@ -143,5 +156,179 @@ export const statsRoutes = new Elysia({ prefix: '/api/stats' })
       readingStatus,
       monthlyBooksAdded,
       averageRating,
+    }
+  })
+
+  .get('/reading', async ({ request }) => {
+    const session = await auth.api.getSession({ headers: request.headers })
+    if (!session?.user) {
+      return { error: 'Unauthorized' }
+    }
+    const user = session.user
+
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const startOfYear = new Date(currentYear, 0, 1)
+
+    const twelveMonthsAgo = new Date()
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11)
+    twelveMonthsAgo.setDate(1)
+    twelveMonthsAgo.setHours(0, 0, 0, 0)
+
+    try {
+      const [
+        totalPagesResult,
+        booksThisYearResult,
+        avgDaysResult,
+        currentlyReadingResult,
+        monthlyPagesResult,
+        categoryBreakdownResult,
+        timelineResult,
+        goalResult,
+      ] = await Promise.all([
+        // 1. Total pages read (completed books)
+        db
+          .select({ total: sum(books.pageCount) })
+          .from(userBooks)
+          .innerJoin(books, eq(userBooks.bookId, books.id))
+          .where(
+            and(
+              eq(userBooks.userId, user.id),
+              eq(userBooks.status, 'completed'),
+              isNotNull(books.pageCount),
+            ),
+          ),
+
+        // 2. Books completed this year
+        db
+          .select({ count: count() })
+          .from(userBooks)
+          .where(
+            and(
+              eq(userBooks.userId, user.id),
+              eq(userBooks.status, 'completed'),
+              gte(userBooks.finishedAt, startOfYear),
+            ),
+          ),
+
+        // 3. Average days to finish
+        db
+          .select({
+            avg: sql<string>`AVG(EXTRACT(EPOCH FROM (${userBooks.finishedAt} - ${userBooks.startedAt})) / 86400)`,
+          })
+          .from(userBooks)
+          .where(
+            and(
+              eq(userBooks.userId, user.id),
+              eq(userBooks.status, 'completed'),
+              isNotNull(userBooks.startedAt),
+              isNotNull(userBooks.finishedAt),
+            ),
+          ),
+
+        // 4. Currently reading count
+        db
+          .select({ count: count() })
+          .from(userBooks)
+          .where(and(eq(userBooks.userId, user.id), eq(userBooks.status, 'reading'))),
+
+        // 5. Monthly pages (last 12 months)
+        db
+          .select({
+            month: sql<string>`to_char(${userBooks.finishedAt}, 'YYYY-MM')`,
+            pages: sum(books.pageCount),
+          })
+          .from(userBooks)
+          .innerJoin(books, eq(userBooks.bookId, books.id))
+          .where(
+            and(
+              eq(userBooks.userId, user.id),
+              eq(userBooks.status, 'completed'),
+              isNotNull(userBooks.finishedAt),
+              gte(userBooks.finishedAt, twelveMonthsAgo),
+              isNotNull(books.pageCount),
+            ),
+          )
+          .groupBy(sql`to_char(${userBooks.finishedAt}, 'YYYY-MM')`)
+          .orderBy(sql`to_char(${userBooks.finishedAt}, 'YYYY-MM')`),
+
+        // 6. Category breakdown (completed books)
+        db
+          .select({
+            name: categories.name,
+            count: count(),
+          })
+          .from(userBooks)
+          .innerJoin(books, eq(userBooks.bookId, books.id))
+          .innerJoin(bookCategories, eq(books.id, bookCategories.bookId))
+          .innerJoin(categories, eq(bookCategories.categoryId, categories.id))
+          .where(and(eq(userBooks.userId, user.id), eq(userBooks.status, 'completed')))
+          .groupBy(categories.name)
+          .orderBy(desc(count())),
+
+        // 7. Timeline (completed + reading books)
+        db
+          .select({
+            bookId: books.id,
+            title: books.title,
+            coverPath: books.coverPath,
+            coverUrl: books.coverUrl,
+            pageCount: books.pageCount,
+            status: userBooks.status,
+            startedAt: userBooks.startedAt,
+            finishedAt: userBooks.finishedAt,
+          })
+          .from(userBooks)
+          .innerJoin(books, eq(userBooks.bookId, books.id))
+          .where(
+            and(
+              eq(userBooks.userId, user.id),
+              sql`${userBooks.status} IN ('completed', 'reading')`,
+            ),
+          )
+          .orderBy(desc(sql`COALESCE(${userBooks.finishedAt}, ${userBooks.startedAt})`))
+          .limit(20),
+
+        // 8. Reading goal for current year
+        db
+          .select()
+          .from(readingGoals)
+          .where(and(eq(readingGoals.userId, user.id), eq(readingGoals.year, currentYear)))
+          .limit(1),
+      ])
+
+      const totalPagesRead = Number(totalPagesResult[0]?.total) || 0
+      const booksThisYear = booksThisYearResult[0]?.count ?? 0
+      const avgDaysToFinish = avgDaysResult[0]?.avg
+        ? Math.round(Number(avgDaysResult[0].avg))
+        : null
+      const currentlyReading = currentlyReadingResult[0]?.count ?? 0
+
+      // Fill in 12-month grid for monthly pages
+      const months: string[] = []
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+      }
+      const pagesMap = new Map(monthlyPagesResult.map((r) => [r.month, Number(r.pages) || 0]))
+      const monthlyPages = months.map((m) => ({ month: m, pages: pagesMap.get(m) ?? 0 }))
+
+      const readingGoal = goalResult[0]
+        ? { targetBooks: goalResult[0].targetBooks, completedBooks: booksThisYear }
+        : null
+
+      return {
+        totalPagesRead,
+        booksThisYear,
+        avgDaysToFinish,
+        currentlyReading,
+        monthlyPages,
+        categoryBreakdown: categoryBreakdownResult,
+        timeline: timelineResult,
+        readingGoal,
+      }
+    } catch (err) {
+      logger.error({ error: err }, 'Reading stats error')
+      throw err
     }
   })
